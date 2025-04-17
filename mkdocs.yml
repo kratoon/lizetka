@@ -1,0 +1,54 @@
+site_name: Lizetka - Táborové stránky
+site_description: Táborové stránky Lizetka
+site_author: Ondrej Kratochvil
+
+# Theme configuration
+theme:
+  name: material
+  language: cs
+  custom_dir: overrides
+  logo: images/favicon.ico
+  favicon: images/favicon.ico
+  palette:
+    - scheme: default
+      primary: white
+      accent: custom
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Plugins configuration
+plugins:
+  - search:
+      separator: '[\s\u200b\-\.,!=\[\]()"`/]+'
+  - minify:
+      minify_html: true
+  - blog:
+      enabled: true
+      blog_dir: .  # Directory where blog posts are located
+      # You can add more configuration options for the blog plugin as needed
+  - git-revision-date-localized
+
+# Navigation configuration
+nav:
+  - Blog: index.md
+    
+extra:
+  generator: false
+#  social:
+#    - icon: fontawesome/regular/envelope
+#      link: mailto:tabor@lizetka.cz
+#    - icon: fontawesome/brands/github
+#      link: https://github.com/kratoon/lizetka
+
+# Extra CSS or JavaScript files
+extra_css:
+  - stylesheets/extra.css
+
+# Markdown extensions
+markdown_extensions:
+#  - toc
+  - tables
+  - fenced_code
+
+# Extra configuration options can be added here
