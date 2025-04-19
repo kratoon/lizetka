@@ -2,3 +2,6 @@
 *.iml
 site/
 templates/.icons/material
+package-lock.json
+venv/
+node_modules/
