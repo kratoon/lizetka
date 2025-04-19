@@ -1,0 +1,14 @@
+{
+    "name": "lizetka",
+    "version": "1.0.0",
+    "description": "",
+    "type": "module",
+    "devDependencies": {
+        "fs-extra": "^11.3.0",
+        "klaw": "^4.1.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kratoon/lizetka.git"
+    }
+}

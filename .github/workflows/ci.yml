@@ -31,4 +31,5 @@ jobs:
       - run: pip install mkdocs-git-revision-date-localized-plugin
       - run: pip install mkdocs-git-committers-plugin
       - run: pip install 'mkdocs[i18n]'
+      - run: node ./scripts/bin/write-posts.js
       - run: mkdocs gh-deploy --force
