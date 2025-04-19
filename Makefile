@@ -1,7 +1,7 @@
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 project_dir := $(dir $(mkfile_path))
 
-prepare:
+prepare-env:
 	python3 -m venv venv
 	source venv/bin/activate
 	python3 -m pip install mkdocs
@@ -14,7 +14,10 @@ prepare:
 
 serve:
 	python3 -m http.server --directory site
+
+write-posts:
+	node ./scripts/bin/write-posts.js
 	
 build:
-	node ./scripts/bin/write-posts.js
+	make write-posts
 	python3 -m mkdocs build --site-dir site --config-file mkdocs.yml
