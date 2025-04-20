@@ -62,7 +62,7 @@ function renderChildren(items = []) {
     if (Array.isArray(items)) {
         return `${items.filter(it => it != null).join('\n')}`;
     }
-    return items;
+    return items ?? '';
 }
 
 const html = {
