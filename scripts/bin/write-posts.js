@@ -47,10 +47,10 @@ function markdownContent(item) {
                         width: '150px', height: '110px'
                     }
                 })
-                
+
             }));
         } else {
-            result.push(html.img({src: item.src}));
+            result.push(html.img({src: item.content.src}));
         }
     } else if (type === 'video') {
         result.push(html.a({
