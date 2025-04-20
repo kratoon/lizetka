@@ -2,6 +2,7 @@
 
 ## Development
 
+- prepare venv (just once): `prepare-env`
 - start venv: `source venv/bin/activate`
 - `make build`
 - `make serve`

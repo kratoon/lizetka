@@ -16,7 +16,9 @@
         },
         {
             "type": "image",
-            "src": "/public/tabor.jpg"
+            "content": {
+                "src": "/public/tabor.jpg"
+            }
         },
         {
             "type": "comment",
