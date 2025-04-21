@@ -1,5 +1,10 @@
 # Lizetka
 
+## Blog Post Editor
+
+Create blog posts at [https://editor.lizetka.cz/](https://editor.lizetka.cz/).
+Upload blog posts (files with .json) to [https://github.com/kratoon/lizetka/tree/main/posts](https://github.com/kratoon/lizetka/tree/main/posts)
+
 ## Development
 
 - prepare venv (just once): `prepare-env`
