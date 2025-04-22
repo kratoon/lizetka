@@ -64,6 +64,23 @@ function markdownContent(item) {
         result.push(html.div({children: item.content}));
     } else if (type === 'gallery') {
         result.push(gallery(item.content));
+    } else if (type === 'youtube') {
+        result.push(html.iframe({
+            attributes: {
+                src: `https://www.youtube.com/embed/${item.content}`,
+                width: '560',
+                height: '315',
+                title: "YouTube video player",
+                allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+                referrerpolicy: "strict-origin-when-cross-origin",
+                allowfullscreen: true
+            },
+            style: {
+                margin: '20px 0 20px 0',
+                width: '100%',
+                height: '20rem'
+            }
+        }));
     }
     return result;
 }

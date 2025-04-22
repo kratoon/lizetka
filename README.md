@@ -7,8 +7,14 @@ Upload blog posts (files with .json) to [https://github.com/kratoon/lizetka/tree
 
 ## Development
 
-- prepare venv (just once): `prepare-env`
-- start venv: `source venv/bin/activate`
+Prepare environment (just once): 
+- `python3 -m venv venv`
+- `source venv/bin/activate`
+- `make install-mkdocs`
+- `npm install`
+
+Build & Serve
+- `source venv/bin/activate`
 - `make build`
 - `make serve`
 
