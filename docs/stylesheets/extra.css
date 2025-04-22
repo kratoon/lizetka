@@ -24,3 +24,23 @@
 .md-footer {
     background-color: rgb(222, 217, 182);
 }
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.gallery img:hover {
+    border: transparent solid 4px;
+}
+
+@media (min-width: 540px) {
+    .sm\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 720px) {
+    .md\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
