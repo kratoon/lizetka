@@ -1,5 +1,5 @@
-function div({children, style}) {
-    return render('div', {children, style});
+function div({children, style, classes}) {
+    return render('div', {children, style, classes});
 }
 
 function img({src, width, height, style, alt = "img"}) {
@@ -39,14 +39,27 @@ function iframe({attributes, style}) {
     return render('iframe', {attributes, style});
 }
 
-function render(element, {attributes, style, children}) {
+function render(element, {attributes, style, children, classes}) {
     const allStyles = {
         ...(attributes?.style ?? {}),
         ...(style ?? {})
     };
+    let classesArray = [];
+    if (attributes?.class != null) {
+        classesArray.push(...attributes.class.split(' '))
+    }
+    if (classes != null) {
+        if (typeof classes === 'string') {
+            classesArray.push(...classes.split(' '))
+        } else if (Array.isArray(classes)) {
+            classesArray.push(...classes.map(it => it.split(' ')).flat());
+        }
+        classesArray.flat().map(it => (it ?? '').trim()).filter(it => it != null && it !== '');
+    }
     const allAttributes = {
         ...(attributes ?? {}),
-        style: renderStyle(allStyles)
+        style: renderStyle(allStyles),
+        class: classesArray.join(' ').trim()
     };
     return `<${element} ${renderAttributes(allAttributes)}>${renderChildren(children)}</${element}>`;
 }

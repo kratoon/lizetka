@@ -42,24 +42,28 @@ function markdownContent(item) {
         if (item.link) {
             result.push(html.a({
                 href: item.link, children: html.img({
-                    src: item.src, style: {
+                    src: item.src,
+                    style: {
                         "object-fit": "cover",
-                        width: '150px', height: '110px'
+                        "object-position": "center",
+                        "width": "100%",
+                        "max-width": "100%",
+                        "height": "8rem",
+                        "border-radius": ".5rem"
                     }
                 })
-
             }));
         } else {
             result.push(html.img({src: item.content.src}));
         }
     } else if (type === 'video') {
-        result.push(html.a({
-            href: item.link, children: html.video({
-                poster: item.poster, children: html.source({src: item.src, type: 'video/mp4'}), style: {
-                    width: '150px', height: '110px'
-                },
-            })
-        }));
+        // result.push(html.a({
+        //     href: item.link, children: html.video({
+        //         poster: item.poster, children: html.source({src: item.src, type: 'video/mp4'}), style: {
+        //             width: '150px', height: '110px'
+        //         },
+        //     })
+        // }));
     } else if (type === 'paragraph') {
         result.push(html.div({children: item.content}));
     } else if (type === 'gallery') {
@@ -90,18 +94,30 @@ function gallery(gallery) {
     if (!gallery && gallery.length === 0) {
         return '';
     }
-    return html.div({children: gallery.map(galleryItem), style: {display: "flex", "flex-wrap": "wrap", gap: "10px"}});
+    return html.div({
+        children: gallery.map(galleryItem),
+        classes: ['gallery grid-cols-1 sm:grid-cols-2 md:grid-cols-3'],
+        style: {
+            "margin-top": "2rem",
+            "margin-bottom": "2rem",
+            display: "grid",
+            "flex-wrap": "wrap",
+            gap: "1rem"
+        }
+    });
 }
 
 function galleryItem(item) {
     return html.div({
-        children: [
-            item.title,
-            html.div({
-                children: markdownContent(item)
-            })
-        ]
-    });
+            children: [
+                html.div({
+                    style: {'padding-left': '5px'},
+                    children: item.title
+                }),
+                markdownContent(item)
+            ]
+        }
+    );
 }
 
 
