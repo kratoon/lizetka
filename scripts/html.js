@@ -35,6 +35,10 @@ function source({src, type}) {
     return render('source', {attributes: {src, type}});
 }
 
+function iframe({attributes, style}) {
+    return render('iframe', {attributes, style});
+}
+
 function render(element, {attributes, style, children}) {
     const allStyles = {
         ...(attributes?.style ?? {}),
@@ -70,7 +74,8 @@ const html = {
     img,
     a,
     video,
-    source
+    source,
+    iframe,
 }
 
 export default html;
