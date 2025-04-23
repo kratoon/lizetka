@@ -82,9 +82,12 @@ function markdownContent(item) {
     } else if (type === 'gallery') {
         result.push(gallery(item.content));
     } else if (type === 'youtube') {
+        const src = item.content.startsWith('https://')
+            ? item.content.replace('https://www.youtube.com/watch', 'https://www.youtube.com/embed')
+            : `https://www.youtube.com/embed/${item.content}`;
         result.push(html.iframe({
             attributes: {
-                src: `https://www.youtube.com/embed/${item.content}`,
+                src,
                 width: '560',
                 height: '315',
                 title: "YouTube video player",
