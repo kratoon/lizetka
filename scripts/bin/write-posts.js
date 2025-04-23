@@ -6,6 +6,7 @@ import fs from 'fs-extra';
 import {isJsonFile, walkFiles} from '../fs-utils.js';
 import md from '../md.js';
 import html from '../html.js';
+import {isNotBlank} from "../string.js";
 
 const rootDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const jsonDir = path.join(rootDir, 'posts');
@@ -53,8 +54,20 @@ function markdownContent(item) {
                     }
                 })
             }));
+        } else if (item.src) {
+            result.push(html.img({
+                src: item.src,
+                style: {
+                    "object-fit": "cover",
+                    "object-position": "center",
+                    "width": "100%",
+                    "max-width": "100%",
+                    "height": "8rem",
+                    "border-radius": ".5rem"
+                }
+            }));
         } else {
-            result.push(html.img({src: item.content.src}));
+            result.push(html.img({src: item.src ?? item.content.src}));
         }
     } else if (type === 'video') {
         // result.push(html.a({
@@ -112,7 +125,7 @@ function galleryItem(item) {
             children: [
                 html.div({
                     style: {'padding-left': '5px'},
-                    children: item.title
+                    children: isNotBlank(item.title) ? item.title : html.div({children: '&nbsp;'})
                 }),
                 markdownContent(item)
             ]
