@@ -67,7 +67,7 @@ function markdownContent(item) {
                 }
             }));
         } else {
-            result.push(html.img({src: item.src ?? item.content.src}));
+            result.push(html.img({src: item.src ?? item.content}));
         }
     } else if (type === 'video') {
         // result.push(html.a({
