@@ -1,7 +1,7 @@
 {
     "meta": {
-        "date": "2023-08-10",
-        "title": "Blata 2023",
+        "date": "2024-07-24",
+        "title": "Blata 2024",
         "categories": [
             "blata",
             "tábor"
@@ -13,7 +13,7 @@
     "content": [
         {
             "type": "h1",
-            "content": "letní dětského tábora Blata 2023"
+            "content": "II. běh letního dětského tábora Blata 2024"
         },
         {
             "type": "image",
@@ -21,7 +21,7 @@
         },
         {
             "type": "h2",
-            "content": "13. 7. 2023 - sobota"
+            "content": "13. 7. 2024 - sobota"
         },
         {
             "type": "paragraph",
@@ -56,7 +56,7 @@
         },
         {
             "type": "h2",
-            "content": "14. 7. 2023 - neděle"
+            "content": "14. 7. 2024 - neděle"
         },
         {
             "type": "paragraph",
@@ -68,7 +68,7 @@
         },
         {
             "type": "h2",
-            "content": "15. 7. 2023 - pondělí"
+            "content": "15. 7. 2024 - pondělí"
         },
         {
             "type": "paragraph",
