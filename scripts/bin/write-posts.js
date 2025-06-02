@@ -101,6 +101,24 @@ function markdownContent(item) {
                 height: '20rem'
             }
         }));
+    } else if (type === 'file') {
+        const fileName = item.content;
+        if (fileName.endsWith('.pdf')) {
+            result.push(html.a({
+                href: `/public/files/${fileName}`, children: [
+                    html.div({children: fileName}),
+                    html.img({
+                        src: `/public/icon-pdf.png`,
+                        style: {
+                            "height": "4rem",
+                        }
+                    })
+                ],
+                attributes: {
+                    target: '_blank'
+                }
+            }));
+        }
     }
     return result;
 }

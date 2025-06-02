@@ -13,8 +13,8 @@ function img({src, width, height, style, alt = "img"}) {
     });
 }
 
-function a({children, style, href}) {
-    return render('a', {children, style, attributes: {href}});
+function a({children, style, href, attributes = {}}) {
+    return render('a', {children, style, attributes: {...attributes, href}});
 }
 
 function video({children, width, poster, style}) {
