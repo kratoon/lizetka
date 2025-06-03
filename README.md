@@ -2,9 +2,9 @@
 
 ## Blog Post Editor
 
-Create blog posts at [https://editor.lizetka.cz/](https://editor.lizetka.cz/).
-Upload blog posts (files with .json) to [https://github.com/kratoon/lizetka/tree/main/posts](https://github.com/kratoon/lizetka/tree/main/posts)
-Upload static files (pdf) to [https://github.com/kratoon/lizetka/tree/main/docs/public/files](https://github.com/kratoon/lizetka/tree/main/docs/public/files)
+- Create blog posts at [https://editor.lizetka.cz/](https://editor.lizetka.cz/)    
+- Upload blog posts (files with .json) to [https://github.com/kratoon/lizetka/tree/main/posts](https://github.com/kratoon/lizetka/tree/main/posts)  
+- Upload static files (pdf) to [https://github.com/kratoon/lizetka/tree/main/docs/public/files](https://github.com/kratoon/lizetka/tree/main/docs/public/files)  
 
 ## Development
 
