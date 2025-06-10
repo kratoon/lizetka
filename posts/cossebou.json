@@ -1,0 +1,46 @@
+{
+    "meta": {
+        "date": "2025-06-10",
+        "title": "cossebou",
+        "categories": [
+            "informace pro rodiče"
+        ],
+        "authors": [
+            "alzhli"
+        ]
+    },
+    "content": [
+        {
+            "type": "h1",
+            "content": "Doporučený seznam věcí "
+        },
+        {
+            "type": "h3",
+            "content": "Co si s sebou sbalit na tábor?"
+        },
+        {
+            "type": "paragraph",
+            "content": "Tuhle otázku si před odjezdem kladou nejen rodiče, ale i někteří naši vedoucí. A právě proto jsme připravili doporučený seznam věcí, podle kterého si zvládnou zabalit i vaše děti. "
+        },
+        {
+            "type": "comment",
+            "content": "more"
+        },
+        {
+            "type": "h3",
+            "content": "Seznam ke stažení zde:"
+        },
+        {
+            "type": "file",
+            "content": "seznamveci.pdf"
+        },
+        {
+            "type": "paragraph",
+            "content": "Všechny věci doporučujeme zabalit do velkého kufru nebo tašky a jednoho příručního batůžku, které může sloužit i na výlety. Zavazadla dětem předem podepište nebo označte. "
+        },
+        {
+            "type": "paragraph",
+            "content": "Mobily a další elektroniku dětem nezakazujeme, ale vzhledem k povaze tábora a ubytování ve stanech ji s sebou nedoporučujeme. "
+        }
+    ]
+}
