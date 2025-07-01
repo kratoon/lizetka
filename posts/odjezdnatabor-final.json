@@ -1,0 +1,39 @@
+{
+    "meta": {
+        "date": "2025-07-01",
+        "title": "odjezdnatabor",
+        "categories": [
+            "informace pro rodiče"
+        ],
+        "authors": [
+            "hlinkavl"
+        ]
+    },
+"content": [
+        {
+            "type": "h1",
+            "content": "Bus a příliv nečeká"
+        },
+    "content": [
+        {
+            "type": "h3",
+            "content": "Odjezd a dokumenty k odjezdu"
+        },
+        {
+            "type": "paragraph",
+            "content": "Milí rodičové, pečlivě si prosím nastudujte pokyny k odjezdu na tábor. Všechny důležité dokumenty, které je zapotřebí u odjezdu odevzdat do rukou zdravotnic, naleznete níže."
+        },
+        {
+            "type": "file",
+            "content": "odjezd_dokumenty.pdf"
+        },
+        {
+            "type": "file",
+            "content": "odjezd_pokyny.pdf"
+        },
+        {
+            "type": "comment",
+            "content": "more"
+        }
+    ]
+}
