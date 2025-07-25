@@ -14,7 +14,7 @@ serve:
 	python3 -m http.server --directory site
 
 write-posts:
-	node ./scripts/bin/write-posts.js
+	sh ./scripts/bin/write-posts.sh
 	
 build:
 	make write-posts

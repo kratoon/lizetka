@@ -3,6 +3,8 @@
 import path from 'path';
 import {fileURLToPath} from 'url';
 import fs from 'fs-extra';
+import sha256 from 'crypto-js/sha256.js';
+import encHex from 'crypto-js/enc-hex.js';
 import {isJsonFile, walkFiles} from '../fs-utils.js';
 import md from '../md.js';
 import html from '../html.js';
@@ -11,6 +13,7 @@ import {isNotBlank} from "../string.js";
 const rootDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const jsonDir = path.join(rootDir, 'posts');
 const mdDir = path.join(rootDir, 'docs/posts');
+const publicImageDir = path.join(rootDir, 'docs/public/build/images');
 
 async function main() {
     const files = await walkFiles(jsonDir, isJsonFile);
@@ -40,10 +43,16 @@ function markdownContent(item) {
     } else if (type === 'comment') {
         result.push(md.comment(item.content));
     } else if (type === 'image') {
+        const imageBase64 = item.src ?? item.content;
+        const extension = getFileExtensionFromBase64(imageBase64);
+        const imageName = textToUUID(imageBase64);
+        const imageFileName = `${imageName}.b64`;
+        const imagePublicSrc = `/public/build/images/${imageName}.${extension}`;
+        fs.outputFile(path.join(publicImageDir, imageFileName), imageBase64);
         if (item.link) {
             result.push(html.a({
                 href: item.link, children: html.img({
-                    src: item.src,
+                    src: imagePublicSrc,
                     style: {
                         "object-fit": "cover",
                         "object-position": "center",
@@ -56,7 +65,7 @@ function markdownContent(item) {
             }));
         } else if (item.src) {
             result.push(html.img({
-                src: item.src,
+                src: imagePublicSrc,
                 style: {
                     "object-fit": "cover",
                     "object-position": "center",
@@ -67,7 +76,7 @@ function markdownContent(item) {
                 }
             }));
         } else {
-            result.push(html.img({src: item.src ?? item.content}));
+            result.push(html.img({src: imagePublicSrc}));
         }
     } else if (type === 'video') {
         // result.push(html.a({
@@ -155,3 +164,33 @@ function galleryItem(item) {
 }
 
 
+function textToUUID(text) {
+    const hashBuffer = sha256(text).toString(encHex);
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(hashBuffer);
+    const hashArray = Array.from(encoded.slice(0, 16));
+    // Set version (UUID v4-style: version 4 = 0b0100)
+    hashArray[6] = (hashArray[6] & 0x0f) | 0x40;
+
+    // Set variant (0b10xx xxxx)
+    hashArray[8] = (hashArray[8] & 0x3f) | 0x80;
+    // Convert to UUID format
+    const hex = hashArray.map(b => b.toString(16).padStart(2, '0'));
+    return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
+}
+
+function getFileExtensionFromBase64(base64String) {
+    const match = base64String.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/);
+    const mimeType = match[1];
+    const mimeToExtension = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+        'image/svg+xml': 'svg',
+        'image/bmp': 'bmp',
+        'image/tiff': 'tiff',
+        'image/x-icon': 'ico',
+    };
+    return mimeToExtension[mimeType] || null;
+}

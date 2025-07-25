@@ -5,7 +5,8 @@
     "type": "module",
     "devDependencies": {
         "fs-extra": "^11.3.0",
-        "klaw": "^4.1.0"
+        "klaw": "^4.1.0",
+        "crypto-js": "^4.2.0"
     },
     "repository": {
         "type": "git",
