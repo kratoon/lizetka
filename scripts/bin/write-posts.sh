@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 IMAGE_DIR="./docs/public/build/images"
 
