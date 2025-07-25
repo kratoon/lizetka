@@ -1,0 +1,26 @@
+{
+    "meta": {
+        "date": "2025-07-25",
+        "title": "odjezdztabora",
+        "categories": [
+            "na táboře"
+        ],
+        "authors": [
+            "hlinkavl"
+        ]
+    },
+    "content": [
+        {
+            "type": "h1",
+            "content": "Příjezd do Prahy"
+        },
+        {
+            "type": "paragraph",
+            "content": "Plánovaný příjezd autobusu je cca ve 12:15 na nádraží Praha - Vršovice. O případných změnách vás budeme informovat.  Děti budou předány pouze rodičům, pro jiné případy je třeba plná moc podepsaná alespoň jedním z rodičů.  V žádném případě nemohou děti po příjezdu z tábora odejít domů samy.   Pro vyzvedávání dětí přímo v táboře je ideální čas mezi 10 a 11 hodinou, v případě potřeby vyzvednout děti v jiném čase nás prosím kontaktujte."
+        },
+        {
+            "type": "comment",
+            "content": "more"
+        }
+    ]
+}
