@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Lizetka — editor</title>
+  <style>
+    /* Barebones styling — the real UX/UI pass comes in a later phase. */
+    :root { --beige: rgb(222, 217, 182); }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Roboto, system-ui, sans-serif;
+      margin: 0; color: #222; background: #fafafa;
+    }
+    header {
+      background: var(--beige); padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 1.2rem; margin: 0; }
+    main { max-width: 720px; margin: 2rem auto; padding: 0 1.5rem; }
+    button {
+      font: inherit; cursor: pointer; border: 0; border-radius: .5rem;
+      padding: .6rem 1rem; background: #24292f; color: #fff;
+    }
+    button.secondary { background: #e0e0e0; color: #222; }
+    .user { display: flex; align-items: center; gap: .6rem; }
+    .user img { width: 32px; height: 32px; border-radius: 50%; }
+    .card {
+      background: #fff; border: 1px solid #e5e5e5; border-radius: .75rem;
+      padding: 1.5rem; margin-bottom: 1rem;
+    }
+    code { background: #f0f0f0; padding: .1rem .35rem; border-radius: .25rem; }
+    #log {
+      font-family: "Roboto Mono", monospace; font-size: .8rem; white-space: pre-wrap;
+      background: #f6f6f6; border: 1px solid #eee; border-radius: .5rem;
+      padding: .75rem; color: #555; margin-top: 1rem;
+    }
+    .hidden { display: none; }
+    .muted { color: #777; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <!-- ============================================================
+       CONFIG — fill these two in after registering the OAuth App
+       and deploying the Worker (see auth-worker/README.md).
+       ============================================================ -->
+  <script>
+    const CONFIG = {
+      clientId: "Ov23liaT1786vhhNSZAx",
+      workerUrl: "https://lizetka-auth.lizetka.workers.dev",
+      repoOwner: "kratoon",
+      repoName: "lizetka",
+      branch: "vlado_facelift",                  // dev target; switch to "main" to go live
+      scope: "public_repo",                      // write access to public repos
+    };
+  </script>
+
+  <header>
+    <h1>🏕️ Lizetka — editor</h1>
+    <div id="account"></div>
+  </header>
+
+  <main>
+    <!-- Logged-out view -->
+    <section id="loggedOut" class="card hidden">
+      <h2>Přihlášení</h2>
+      <p class="muted">Pro publikování příspěvků se přihlas svým GitHub účtem.</p>
+      <button id="loginBtn">Login with GitHub</button>
+      <p id="configWarning" class="muted hidden"></p>
+    </section>
+
+    <!-- Logged-in view (Phase A: just confirms auth works) -->
+    <section id="loggedIn" class="card hidden">
+      <h2>Přihlášení proběhlo ✅</h2>
+      <p class="muted">
+        Posíláme příspěvky do
+        <code id="repoLabel"></code> na větvi <code id="branchLabel"></code>.
+      </p>
+      <p class="muted">Editor příspěvků přidáme v další fázi.</p>
+    </section>
+
+    <div id="log"></div>
+  </main>
+
+  <script>
+    // ---- tiny helpers -------------------------------------------------------
+    const $ = (id) => document.getElementById(id);
+    const log = (msg) => { $("log").textContent += msg + "\n"; };
+    const TOKEN_KEY = "lizetka_gh_token";
+
+    // The editor's own URL, used as the OAuth redirect target. Register this
+    // exact value as the OAuth App's "Authorization callback URL".
+    const redirectUri = location.origin + location.pathname.replace(/index\.html$/, "");
+
+    function configReady() {
+      return !CONFIG.clientId.startsWith("REPLACE_") && !CONFIG.workerUrl.startsWith("REPLACE_");
+    }
+
+    // ---- OAuth: step 1 — send the user to GitHub ----------------------------
+    function login() {
+      const state = crypto.randomUUID();
+      sessionStorage.setItem("oauth_state", state);
+      const url = new URL("https://github.com/login/oauth/authorize");
+      url.searchParams.set("client_id", CONFIG.clientId);
+      url.searchParams.set("redirect_uri", redirectUri);
+      url.searchParams.set("scope", CONFIG.scope);
+      url.searchParams.set("state", state);
+      location.href = url.toString();
+    }
+
+    // ---- OAuth: step 2 — handle the ?code= callback -------------------------
+    async function handleCallback() {
+      const params = new URLSearchParams(location.search);
+      const code = params.get("code");
+      const state = params.get("state");
+      if (!code) return false;
+
+      // Clean the code/state out of the URL right away.
+      history.replaceState({}, "", redirectUri);
+
+      if (state !== sessionStorage.getItem("oauth_state")) {
+        log("⚠️ State mismatch — ignoring callback (possible CSRF).");
+        return false;
+      }
+      log("Exchanging code for a token via the Worker…");
+
+      const res = await fetch(CONFIG.workerUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, redirect_uri: redirectUri }),
+      });
+      const data = await res.json();
+      if (data.error || !data.access_token) {
+        log("❌ Token exchange failed: " + JSON.stringify(data));
+        return false;
+      }
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+      log("✅ Token received (scope: " + data.scope + ").");
+      return true;
+    }
+
+    // ---- Verify a stored token by asking GitHub who we are ------------------
+    async function fetchUser(token) {
+      const res = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: "Bearer " + token,
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      });
+      if (!res.ok) return null;
+      return res.json();
+    }
+
+    function showLoggedIn(user) {
+      $("loggedOut").classList.add("hidden");
+      $("loggedIn").classList.remove("hidden");
+      $("repoLabel").textContent = CONFIG.repoOwner + "/" + CONFIG.repoName;
+      $("branchLabel").textContent = CONFIG.branch;
+      $("account").innerHTML =
+        `<span class="user"><img src="${user.avatar_url}" alt="">` +
+        `<span>${user.login}</span> ` +
+        `<button class="secondary" id="logoutBtn">Odhlásit</button></span>`;
+      $("logoutBtn").onclick = logout;
+    }
+
+    function showLoggedOut() {
+      $("loggedIn").classList.add("hidden");
+      $("loggedOut").classList.remove("hidden");
+      $("account").innerHTML = "";
+      if (!configReady()) {
+        $("loginBtn").disabled = true;
+        $("configWarning").classList.remove("hidden");
+        $("configWarning").innerHTML =
+          "⚙️ Nejdřív vyplň <code>CONFIG.clientId</code> a <code>CONFIG.workerUrl</code> " +
+          "v <code>docs/editor/index.html</code>.";
+      }
+      $("loginBtn").onclick = login;
+    }
+
+    function logout() {
+      localStorage.removeItem(TOKEN_KEY);
+      location.reload();
+    }
+
+    // ---- boot ---------------------------------------------------------------
+    (async function init() {
+      log("Callback URL to register on GitHub: " + redirectUri);
+      if (!configReady()) {
+        log("⚙️ CONFIG not filled in yet — see auth-worker/README.md.");
+      }
+
+      if (await handleCallback()) {
+        // token just stored — fall through to verify it below
+      }
+
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (token) {
+        const user = await fetchUser(token);
+        if (user) {
+          log("Logged in as " + user.login + ".");
+          showLoggedIn(user);
+          return;
+        }
+        log("Stored token is invalid — clearing.");
+        localStorage.removeItem(TOKEN_KEY);
+      }
+      showLoggedOut();
+    })();
+  </script>
+</body>
+</html>
