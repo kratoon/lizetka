@@ -15,11 +15,12 @@ so nothing touches production (lizetka.cz) until we flip the go-live switch.
 `client_secret` and does the code→token exchange). Token stored in the browser; identity
 confirmed. Login once, no re-auth. Commit `93802d7` (local on `vlado_facelift`).
 
-## Phase 2 — Read: access gate + browse posts
+## Phase 2 — Read: access gate + browse posts ✅ DONE & verified (2026-05-31)
 - After login, check the user's **repo Write access** (`GET /repos` → `permissions.push`);
   no rights → friendly "ask the admin for access" message.
-- **List** existing posts and **open** one (load it into the editor view).
-- Split the editor into ES modules for maintainability.
+- **List** existing posts and **open** one (read-only preview; editable form lands in Phase 3).
+- Split the editor into ES modules: `app.js` (boot + OAuth + routing), `github.js` (API).
+  Opening a post uses the Git **blobs** API (posts run up to 23 MB, past the contents-API cap).
 
 ## Phase 3 — Author: block editor + publish new posts
 - Block-based form for every block type: heading / text / photo / gallery / PDF / YouTube /
