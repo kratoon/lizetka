@@ -22,12 +22,22 @@ confirmed. Login once, no re-auth. Commit `93802d7` (local on `vlado_facelift`).
 - Split the editor into ES modules: `app.js` (boot + OAuth + routing), `github.js` (API).
   Opening a post uses the Git **blobs** API (posts run up to 23 MB, past the contents-API cap).
 
-## Phase 3 — Author: block editor + publish new posts
-- Block-based form for every block type: heading / text / photo / gallery / PDF / YouTube /
-  the `✂️ preview-ends-here` divider.
-- Meta form: date, title, categories + authors (prefilled from real values).
-- Auto **image resize/compress** before base64; auto **clean slug** filenames.
-- **Save/Publish** a brand-new post as **one atomic commit** (post JSON + any PDFs together).
+## Phase 3 — Author: block editor + publish new posts ✅ DONE & verified (2026-05-31)
+- Block-based form. Blocks: **Nadpis** (H1–H3) / **Text** / **Fotka** / **Zonerama link** /
+  **PDF** / **YouTube** / the **✂️ Konec náhledu** divider. Each has ↑ ↓ ✕ controls.
+- New modules: `image.js` (compress JPEG ≤1600px + PDF→base64), `blocks.js` (editable cards).
+- Meta form: date (today by default), title, categories + authors (prefilled; author
+  auto-checked to match the logged-in user).
+- **Photo split** (matches production exactly): **Fotka** = full-size inline photo →
+  `{type:'image', content:<base64>}`; **Zonerama link** = one cover + caption + album link →
+  single-item `{type:'gallery', content:[{type:'image', src, title, link}]}`. (All 18 prod
+  galleries are a single Zonerama cover, never a multi-photo grid.)
+- Auto **image compress** + auto **clean slug** (diacritic-free, unique vs existing).
+- **Per-block validation** on publish — refuses to publish an incomplete block (reports
+  "Blok č. N: …") so nothing is silently dropped.
+- Post list **sorted newest→oldest** by `meta.date` (read via cheap Range requests to
+  raw.githubusercontent — filenames don't reflect order).
+- **Publish** = one atomic commit (post JSON + any PDFs) via the Git Data API.
 
 ## Phase 4 — Edit, Undo & Go-Live
 - Open an existing post, edit it, save over the same file.

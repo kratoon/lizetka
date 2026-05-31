@@ -32,6 +32,20 @@ async function api(path) {
   return res.json();
 }
 
+// Throwing JSON POST/PATCH for the write paths (blobs/trees/commits/refs).
+async function apiSend(path, method, body) {
+  const res = await fetch(API + path, {
+    method,
+    headers: { ...headers(), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`GitHub ${res.status} on ${method} ${path}: ${text}`);
+  }
+  return res.json();
+}
+
 // Validate a stored token by asking who we are. Returns null on a bad/expired
 // token instead of throwing — the boot path uses this to decide login vs. clear.
 export async function getUser() {
@@ -71,4 +85,79 @@ export async function getPostBySha(sha) {
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   const text = new TextDecoder("utf-8").decode(bytes);
   return JSON.parse(text);
+}
+
+// The post's publish date (meta.date) lives at the very top of its JSON. Read
+// only the first ~1 KB via a Range request to raw.githubusercontent.com — the
+// repo is public, that host is CORS-enabled and supports ranges — so we can
+// sort the list by date without pulling whole 1–23 MB files. Returns
+// "YYYY-MM-DD" or null. (Filenames like "denctvrty" don't reflect order.)
+export async function getPostDate(name) {
+  const { repoOwner, repoName, branch } = window.CONFIG;
+  const url =
+    `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/posts/` +
+    encodeURIComponent(name);
+  try {
+    const res = await fetch(url, { headers: { Range: "bytes=0-1023" } });
+    if (!res.ok && res.status !== 206) return null;
+    const text = await res.text();
+    const m = text.match(/"date"\s*:\s*"(\d{4}-\d{2}-\d{2})"/);
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+// Publish a set of files as ONE atomic commit via the Git Data API. Committing
+// to the configured branch triggers existing CI (on `main` → deploys lizetka.cz).
+//   files: [{ path, content, encoding: 'utf-8' | 'base64' }]
+// Post JSON goes to posts/<slug>.json (utf-8); PDFs to docs/public/files/<name>
+// (base64) — all in the same tree so the post and its attachments land together.
+export async function publish({ files, message }) {
+  const { repoOwner, repoName, branch } = window.CONFIG;
+  const base = `/repos/${repoOwner}/${repoName}`;
+
+  // 1. where the branch currently points
+  const ref = await api(`${base}/git/ref/heads/${branch}`);
+  const parentSha = ref.object.sha;
+  // 2. its commit → the tree we build on top of
+  const parentCommit = await api(`${base}/git/commits/${parentSha}`);
+  const baseTree = parentCommit.tree.sha;
+
+  // 3. one blob per file
+  const tree = [];
+  for (const f of files) {
+    const blob = await apiSend(`${base}/git/blobs`, "POST", {
+      content: f.content,
+      encoding: f.encoding,
+    });
+    tree.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
+  }
+  // 4. a tree layered on the base
+  const newTree = await apiSend(`${base}/git/trees`, "POST", {
+    base_tree: baseTree,
+    tree,
+  });
+  // 5. the commit (auto-attributed to the logged-in author via their token)
+  const commit = await apiSend(`${base}/git/commits`, "POST", {
+    message,
+    tree: newTree.sha,
+    parents: [parentSha],
+  });
+  // 6. fast-forward the branch
+  await apiSend(`${base}/git/refs/heads/${branch}`, "PATCH", { sha: commit.sha });
+  return commit;
+}
+
+// Filename-safe slug: strip Czech diacritics, lowercase, keep [a-z0-9] only.
+// Matches the existing post-name style (e.g. "Tábor Blata" → "taborblata") and
+// kills the "(1)" duplicate-download artifacts on PDF names.
+export function slugify(s) {
+  return (
+    String(s)
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "") || "post"
+  );
 }
