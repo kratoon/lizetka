@@ -5,9 +5,8 @@
     /*--color-secondary: rgba(234, 122, 255, 0.10196078431372549);*/
     --color-secondar: rgb(222, 217, 182);
     /* The theme's accent is "custom" (undefined → defaulted to blue). Define it
-       teal so links — "Pokračovat ve čtení", PDF names, hovers, focus — match. */
+       teal so accent-colored UI (link hover, focus rings, etc.) is teal. */
     --md-accent-fg-color: #2f6b6e;
-    --md-typeset-a-color: #2f6b6e;
 }
 
 .md-header {
@@ -55,6 +54,13 @@
 }
 .md-post__content a.toclink {
     color: inherit;
+}
+/* Base content-link color → teal. Material sets --md-typeset-a-color on the body
+   (scheme) level, which beats a :root override, so set the link color directly
+   here. Covers "Pokračovat ve čtení", PDF filename links, and in-text links. (The
+   more-specific toclink/meta rules above still win and stay inherit.) */
+.md-typeset a {
+    color: var(--md-accent-fg-color);
 }
 
 /* Wrapping: no hyphenation (looked bad). Justify body paragraphs like an academic
