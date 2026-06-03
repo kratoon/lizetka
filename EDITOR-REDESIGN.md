@@ -40,13 +40,18 @@ confirmed. Login once, no re-auth. Commit `93802d7` (local on `vlado_facelift`).
 - **Publish** = one atomic commit (post JSON + any PDFs) via the Git Data API.
 
 ## Phase 4 — Edit, Undo & Go-Live
+✅ **Edit + Undo DONE & pushed (2026-06-03).** Go-live deferred until after the code review.
 - Open an existing post, edit it, save over the same file.
 - **Undo** the last publish.
 - **Go live**: switch the OAuth callback to `https://lizetka.cz/editor/`, flip
   `CONFIG.branch` → `main`, first production deploy.
 
 ## Phase 5 — UI/UX polish (non-technical)
-Visual design pass to match the site, drag-to-reorder, faithful live preview, friendlier copy.
+✅ **DONE & pushed (2026-06-03)** — full breakdown in `FACELIFT.md`. Editor facelift (warm/teal
+palette, default block skeleton, collapsible log) + prod MkDocs theming (Baloo 2 font, teal
+headings/links, Kategorie→Témata nav with icons, post-meta cleanup, Fotka height-cap + smaller
+PDF icon), responsive on desktop + mobile. Original stretch ideas not done (possible future):
+drag-to-reorder blocks, faithful live preview.
 
 ---
 

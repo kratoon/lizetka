@@ -1,7 +1,7 @@
 # Facelift — Design Pass Tracker
 
 Working tracker for the visual polish of the **prod MkDocs site** (lizetka.cz) plus the
-already-done editor polish. Lives on `vlado_facelift`; **delete before the PR** (working doc).
+already-done editor polish. Lives on `vlado_facelift`; **kept as design context for the reviewer**.
 Preview: prod site `http://localhost:8001/` (auto-reload), editor `http://localhost:8000/editor/`.
 
 Files in play: `mkdocs.yml`, `docs/stylesheets/extra.css`, `overrides/partials/post.html`,
@@ -20,9 +20,10 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [x] **A4 — Title unified.** Article H1 restyled to **exactly match the frontpage title**
       (demoted H2: teal, 1.4em desktop / 1.25em mobile, semibold) — no oversized default H1.
       Excerpt heading links inherit → identical title on the frontpage and the opened article.
-- [x] **A5 — Links teal.** Defined the theme's "custom" accent (`--md-accent-fg-color`,
-      `--md-typeset-a-color`) as teal → "Pokračovat ve čtení", PDF filename links, hovers/focus
-      all teal (were default blue).
+- [x] **A5 — Links teal.** Accent (`--md-accent-fg-color`) → teal for hover/focus. Base link color
+      set **directly on `.md-typeset a`** because Material defines `--md-typeset-a-color` at the
+      body/scheme level (beats a `:root` var) → "Pokračovat ve čtení", PDF names, in-text links
+      teal (were blue).
 
 ## B. Left sidebar (prod nav)
 - [x] **B1 — Renamed** Kategorie → **Témata** (+ `archive_name: Archiv`).
@@ -49,10 +50,10 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [x] **F1 — Caption** → bold, **always prefixed with 🖼️** (gallery icon) signalling the cover
       photo opens the Zonerama album.
 
-## E. Responsive (desktop + mobile) — verify all of the above
-- [ ] Desktop ≥1220px: sidebar border/tint, section + topic icons, headings, meta pipe.
-- [ ] Mobile (narrow / drawer): drawer shows Archiv/Témata (no "Táborové stránky"); icons
-      present; no sidebar border box; meta row wraps cleanly; Baloo 2 body size not too big.
+## E. Responsive (desktop + mobile) — ✅ verified
+- [x] Desktop: sidebar panel + icons, heading hierarchy, even meta pipe, magazine-banner Fotka, teal links.
+- [x] Mobile: drawer (Archiv/Témata, down-arrows, no border box), 1-line meta, whole-photo Fotka,
+      tuned Baloo 2 wrapping.
 
 ## D. Editor polish (earlier, pending commit)
 - [x] Teal accent, warm palette, beige footer
@@ -63,18 +64,19 @@ Legend: [ ] todo · [~] in progress · [x] done
 
 ## G. Photos & PDF (the 2 big changes)
 - [x] **G1 — Fotka sizing.** **Desktop = magazine banner** (full column width, center-crop via
-      `object-fit: cover`, capped 32rem). **Mobile = whole photo** (no crop; width auto + caps
-      preserve aspect ratio, capped 24rem). *(Vlado reviewing the desktop banner; the no-crop
-      version is one toggle away.)* Gallery covers untouched (`:not([style])`).
+      `object-fit: cover`, capped 32rem) — **Vlado approved**. **Mobile = whole photo** (no crop;
+      width auto + caps preserve aspect ratio, capped 24rem). Gallery covers untouched (`:not([style])`).
 - [x] **G2 — PDF icon** shrunk **4rem → 2.2rem** (CSS `!important` over the generated inline style).
 
-## Open decisions
-- ~~Font~~ → Baloo 2. ~~Topic icons~~ → set (veto anytime). ~~Sidebar label "Nejnovější"~~ → OK.
-  ~~Mobile read-time dropped~~ → OK.
-- **Desktop Fotka = magazine banner (crop)** — Vlado reviewing; revert to no-crop if disliked.
+## Open decisions — all resolved
+- ~~Font~~ → Baloo 2. ~~Topic icons~~ → set. ~~Sidebar label "Nejnovější"~~ → OK.
+  ~~Mobile read-time dropped~~ → OK. ~~Desktop Fotka magazine banner~~ → approved.
 
 ## Verify (per change)
 - Prod: refresh `:8001` (auto-reloads); check a post page for headings + meta, and the left
   sidebar for names/icons/border. Editor: `:8000/editor/`.
-- Before PR: revert generated build artifacts (`docs/posts/*.md`, `docs/public/build/images/`)
-  and delete this file.
+- Generated build artifacts (`docs/posts/*.md`, `docs/public/build/images/`) are gitignored — not
+  committed; CI regenerates them on deploy.
+- **Status: design pass complete & pushed** (`vlado_facelift` tip `15e1b11`). Next: open the PR →
+  second-coder review → then the deferred go-live (OAuth callback → `lizetka.cz/editor/`,
+  `CONFIG.branch` → `main`).
