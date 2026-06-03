@@ -25,18 +25,13 @@
                     {#- Collapse whitespace -#}
                 </li>
 
-                <!-- Post categories -->
+                <!-- Post categories (topic). No "v" prefix. Each category is
+                     wrapped in a span (separator first, so hiding extras leaves no
+                     trailing comma) — mobile shows only the first to stay 1 row. -->
                 {% if post.categories %}
-                <li class="md-meta__item">
-                    {{ lang.t("blog.categories.in") }}
+                <li class="md-meta__item md-meta__item--cats">
                     {% for category in post.categories %}
-                    <a
-                            href="{{ category.url | url }}"
-                            class="md-meta__link"
-                    >
-                        {{- category.title -}}
-                    </a>
-                    {%- if loop.revindex > 1 %}, {% endif -%}
+                    <span class="md-cat">{% if not loop.first %}, {% endif %}<a href="{{ category.url | url }}" class="md-meta__link">{{- category.title -}}</a></span>
                     {% endfor -%}
                 </li>
                 {% endif %}
@@ -44,7 +39,7 @@
                 <!-- Post readtime -->
                 {% if post.config.readtime %}
                 {% set time = post.config.readtime %}
-                <li class="md-meta__item">
+                <li class="md-meta__item md-meta__item--readtime">
                     {% if time == 1 %}
                     {{ lang.t("readtime.one") }}
                     {% else %}

@@ -32,6 +32,11 @@ const AUTHORS = [
   { key: "kratoon", name: "Ondrej Kratochvil" },
 ];
 
+// Default block skeleton for a NEW post — Vlado's usual shape: Nadpis (H2) →
+// Text → Zonerama link → ✂️ Konec náhledu. Pre-filled so the common case is one
+// edit away; blocks can be added, removed, or reordered from here.
+const DEFAULT_NEW_POST_BLOCKS = ["heading", "paragraph", "zonerama", "more"];
+
 // Filled during boot / list load; used by the editor (author prefill, slug uniqueness).
 let currentUser = null;
 let currentPosts = [];
@@ -373,7 +378,9 @@ function openEditor() {
   $("editorTitle").textContent = "Nový příspěvek";
   $("metaDate").value = new Date().toISOString().slice(0, 10);
   $("metaTitle").value = "";
-  $("blocksContainer").innerHTML = "";
+  const container = $("blocksContainer");
+  container.innerHTML = "";
+  DEFAULT_NEW_POST_BLOCKS.forEach((k) => container.append(createBlock(k)));
   $("publishStatus").textContent = "";
   $("publishBtn").disabled = false;
   show("view-editor");
@@ -473,7 +480,7 @@ async function publishPost() {
     await loadPosts();
   } catch (e) {
     log("❌ publish: " + e.message);
-    setStatus("❌ Publikace selhala — viz log dole.");
+    setStatus("❌ Publikace selhala — detaily v „Technickém logu\" dole.");
     $("publishBtn").disabled = false;
   }
 }
@@ -529,7 +536,7 @@ async function undoLastPublish(last) {
   } catch (e) {
     log("❌ undo: " + e.message);
     renderUndo();
-    alert("Vrácení selhalo — viz log dole.");
+    alert("Vrácení selhalo — detaily v „Technickém logu\" dole.");
   }
 }
 

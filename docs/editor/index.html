@@ -6,29 +6,50 @@
   <meta name="robots" content="noindex" />
   <title>Lizetka — editor</title>
   <style>
-    /* Barebones styling — the real UX/UI pass comes in a later phase. */
-    :root { --beige: rgb(222, 217, 182); }
+    /* Light visual identity matching the lizetka.cz site (MkDocs Material:
+       white body, beige rgb(222,217,182) header+footer, Roboto / Roboto Mono),
+       with one restrained moss-green accent for primary actions. */
+    :root {
+      --beige: rgb(222, 217, 182);
+      --beige-dark: rgb(199, 193, 150);  /* borders / dividers on beige */
+      --bg: #faf9f4;                      /* warm off-white page */
+      --surface: #fff;                    /* cards */
+      --border: #e7e3d6;                  /* warm card border */
+      --ink: #2b2a26;                     /* warm near-black text */
+      --muted: #76726a;                   /* warm grey */
+      --accent: #2f6b6e;                  /* deep teal — primary buttons */
+      --accent-dark: #25585a;             /* primary hover */
+    }
     * { box-sizing: border-box; }
     body {
       font-family: Roboto, system-ui, sans-serif;
-      margin: 0; color: #222; background: #fafafa;
+      margin: 0; color: var(--ink); background: var(--bg);
+      display: flex; flex-direction: column; min-height: 100vh;
     }
     header {
+      position: relative;
       background: var(--beige); padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--beige-dark);
       display: flex; align-items: center; justify-content: space-between;
     }
     header h1 { font-size: 1.2rem; margin: 0; }
-    main { max-width: 720px; margin: 2rem auto; padding: 0 1.5rem; }
+    .header-right { display: flex; align-items: center; gap: .8rem; }
+    main { width: 100%; max-width: 720px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; }
     button {
       font: inherit; cursor: pointer; border: 0; border-radius: .5rem;
-      padding: .6rem 1rem; background: #24292f; color: #fff;
+      padding: .6rem 1rem; background: var(--accent); color: #fff;
+      transition: background .15s;
     }
-    button.secondary { background: #e0e0e0; color: #222; }
+    button:hover:not(:disabled) { background: var(--accent-dark); }
+    button.secondary {
+      background: #efece2; color: var(--ink); border: 1px solid var(--border);
+    }
+    button.secondary:hover:not(:disabled) { background: #e7e3d6; }
     button:disabled { opacity: .5; cursor: not-allowed; }
     .user { display: flex; align-items: center; gap: .6rem; }
     .user img { width: 32px; height: 32px; border-radius: 50%; }
     .card {
-      background: #fff; border: 1px solid #e5e5e5; border-radius: .75rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: .75rem;
       padding: 1.5rem; margin-bottom: 1rem;
     }
     .toolbar { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
@@ -45,19 +66,43 @@
       padding: .4rem .6rem; border-bottom: 1px solid #f0f0f0;
       white-space: pre-wrap; word-break: break-word;
     }
-    code { background: #f0f0f0; padding: .1rem .35rem; border-radius: .25rem; }
+    code { background: #efece2; padding: .1rem .35rem; border-radius: .25rem; }
+
+    /* Beige footer matching the site — just a brand caption now. */
+    footer { background: var(--beige); border-top: 1px solid var(--beige-dark); padding: .75rem 1.5rem; }
+    .footer-inner { max-width: 720px; margin: 0 auto; text-align: center; }
+
+    /* Debug log: a discreet chip in the header that drops a panel beneath it.
+       Collapsed by default; the crew never needs it. */
+    .logbox > summary {
+      display: inline-flex; align-items: center; gap: .4rem;
+      cursor: pointer; user-select: none; list-style: none;
+      font-size: .95rem; font-weight: 500; color: var(--accent);
+      background: #fff; border: 1.5px solid var(--accent);
+      border-radius: .5rem; padding: .5rem .95rem; transition: background .15s;
+    }
+    .logbox > summary:hover { background: #e8f0f0; }
+    .logbox[open] > summary { background: var(--accent); color: #fff; }
+    .logbox > summary::-webkit-details-marker { display: none; }
+    .logbox > summary::before { content: "🛠"; }
     #log {
-      font-family: "Roboto Mono", monospace; font-size: .8rem; white-space: pre-wrap;
-      background: #f6f6f6; border: 1px solid #eee; border-radius: .5rem;
-      padding: .75rem; color: #555; margin-top: 1rem;
+      position: absolute; top: calc(100% + .5rem); right: 1.5rem; z-index: 60;
+      font-family: "Roboto Mono", monospace; font-size: .75rem; white-space: pre-wrap;
+      text-align: left; background: var(--surface); border: 1px solid var(--border);
+      border-radius: .6rem; box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+      padding: .7rem; color: #555;
+      width: min(420px, calc(100vw - 3rem)); max-height: 60vh; overflow: auto;
     }
     .hidden { display: none; }
-    .muted { color: #777; font-size: .9rem; }
+    .muted { color: var(--muted); font-size: .9rem; }
 
     /* ---- editor (Phase 3) ---- */
     input[type="text"], input[type="url"], input[type="date"], textarea, select {
-      font: inherit; padding: .5rem .6rem; border: 1px solid #d0d0d0;
+      font: inherit; padding: .5rem .6rem; border: 1px solid #d9d4c6;
       border-radius: .4rem; background: #fff; width: 100%;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent);
     }
     textarea { resize: vertical; }
     .field { display: block; margin: .8rem 0; font-size: .9rem; color: #555; }
@@ -67,8 +112,8 @@
     label.check { font-size: .9rem; color: #222; display: inline-flex; align-items: center; gap: .3rem; cursor: pointer; }
     label.check input { width: auto; }
 
-    .block-card { background: #fff; border: 1px solid #e5e5e5; border-radius: .75rem; margin-bottom: .75rem; overflow: hidden; }
-    .block-head { display: flex; align-items: center; justify-content: space-between; padding: .6rem 1rem; background: #f6f6f4; border-bottom: 1px solid #eee; }
+    .block-card { background: var(--surface); border: 1px solid var(--border); border-radius: .75rem; margin-bottom: .75rem; overflow: hidden; }
+    .block-head { display: flex; align-items: center; justify-content: space-between; padding: .6rem 1rem; background: #f3f1e8; border-bottom: 1px solid var(--border); }
     .block-controls { display: flex; gap: .3rem; }
     .block-controls button { padding: .25rem .55rem; }
     .block-body { padding: 1rem; display: flex; flex-direction: column; gap: .6rem; }
@@ -100,7 +145,14 @@
 
   <header>
     <h1>🏕️ Lizetka — editor</h1>
-    <div id="account"></div>
+    <div class="header-right">
+      <!-- Debug log: discreet chip that drops a panel below the header. -->
+      <details class="logbox">
+        <summary>Log</summary>
+        <div id="log"></div>
+      </details>
+      <div id="account"></div>
+    </div>
   </header>
 
   <main>
@@ -190,8 +242,11 @@
       </div>
     </section>
 
-    <div id="log"></div>
   </main>
+
+  <footer>
+    <div class="footer-inner muted">🏕️ Lizetka — interní editor příspěvků</div>
+  </footer>
 
   <script type="module" src="./app.js"></script>
 </body>
