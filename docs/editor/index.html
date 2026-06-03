@@ -136,17 +136,21 @@
           <button class="secondary" id="refreshBtn">🔄 Načíst znovu</button>
         </div>
       </div>
+      <div id="undoArea"></div>
       <div id="postList"></div>
     </section>
 
-    <!-- Single post — read-only preview (Phase 2) -->
+    <!-- Single post — read-only preview + edit entry point (Phase 2/4) -->
     <section id="view-post" class="hidden">
       <div class="card">
-        <button class="secondary" id="backBtn">← Zpět na seznam</button>
+        <div class="toolbar">
+          <button class="secondary" id="backBtn">← Zpět na seznam</button>
+          <button id="editPostBtn">✏️ Upravit</button>
+        </div>
         <h2 id="postTitle"></h2>
         <p class="muted" id="postMeta"></p>
         <div id="postBlocks"></div>
-        <p class="muted">📖 Náhled jen pro čtení — editaci přidáme ve fázi 3.</p>
+        <p class="muted">📖 Náhled jen pro čtení. Pro úpravy klikni na „✏️ Upravit".</p>
       </div>
     </section>
 

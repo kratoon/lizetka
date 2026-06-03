@@ -7,12 +7,12 @@ import {
   getUser,
   canPush,
   listPosts,
-  getPostBySha,
+  getPostTextBySha,
   getPostDate,
   publish,
   slugify,
 } from "./github.js";
-import { createBlock, BLOCK_TYPES } from "./blocks.js";
+import { createBlock, blockFromJSON, BLOCK_TYPES } from "./blocks.js";
 
 const CONFIG = window.CONFIG;
 const $ = (id) => document.getElementById(id);
@@ -35,6 +35,47 @@ const AUTHORS = [
 // Filled during boot / list load; used by the editor (author prefill, slug uniqueness).
 let currentUser = null;
 let currentPosts = [];
+
+// Edit state (Phase 4). `editing` is null for a brand-new post, or
+// { path, prevText } when editing an existing file (path = keep the filename,
+// prevText = the original bytes, kept so an undo can restore them exactly).
+let editing = null;
+// The post currently open in the read-only preview + its file info, so the
+// "Upravit" button can hand them to the editor.
+let openedPost = null;
+let openedFile = null;
+
+// Record of the last publish so it can be undone. Kept in memory (primary) and
+// mirrored to localStorage so a create-undo survives a reload. An edit's record
+// carries the previous file bytes (`prevText`), which for image-heavy posts can
+// be many MB and exceed the localStorage quota — so persistence is best-effort:
+// if it fails we keep the in-memory copy (undo still works this session) and
+// clear any stale stored record rather than letting a failed publish look broken.
+const LAST_PUBLISH_KEY = "lizetka_last_publish";
+let memUndo = null;
+const lastPublish = {
+  get() {
+    if (memUndo) return memUndo;
+    try {
+      return JSON.parse(localStorage.getItem(LAST_PUBLISH_KEY) || "null");
+    } catch {
+      return null;
+    }
+  },
+  set(v) {
+    memUndo = v;
+    try {
+      localStorage.setItem(LAST_PUBLISH_KEY, JSON.stringify(v));
+    } catch {
+      localStorage.removeItem(LAST_PUBLISH_KEY);
+      log("ℹ️ Undo info too large to save across reloads — undo works until you reload.");
+    }
+  },
+  clear() {
+    memUndo = null;
+    localStorage.removeItem(LAST_PUBLISH_KEY);
+  },
+};
 
 // The editor's own URL, used as the OAuth redirect target. Register this exact
 // value as the OAuth App's "Authorization callback URL".
@@ -129,6 +170,7 @@ async function loadPosts() {
   show("view-posts");
   $("postsRepo").textContent = CONFIG.repoOwner + "/" + CONFIG.repoName;
   $("postsBranch").textContent = CONFIG.branch;
+  renderUndo();
 
   const list = $("postList");
   list.innerHTML = `<div class="card muted">Načítám…</div>`;
@@ -179,9 +221,17 @@ async function openPost(p) {
   $("postTitle").textContent = p.name;
   $("postMeta").textContent = "Načítám…";
   $("postBlocks").innerHTML = "";
+  $("editPostBtn").disabled = true;
+  openedPost = null;
+  openedFile = null;
   try {
-    const post = await getPostBySha(p.sha);
+    // Keep the raw bytes (for edit-undo) alongside the parsed post (for the form).
+    const text = await getPostTextBySha(p.sha);
+    const post = JSON.parse(text);
+    openedPost = post;
+    openedFile = { path: p.path, name: p.name, prevText: text };
     renderPost(post);
+    $("editPostBtn").disabled = false;
     log(`Opened ${p.name} (${post.content?.length ?? 0} blocks).`);
   } catch (e) {
     $("postMeta").textContent = "❌ Nepodařilo se otevřít příspěvek.";
@@ -255,21 +305,49 @@ function buildToolbar() {
   });
 }
 
-function buildMetaForm() {
+// Build the category + author checkbox grids. With no `prefill` (new post) the
+// only thing pre-checked is the author matching the logged-in user. With a
+// `prefill` (editing) the post's own categories/authors are checked instead —
+// and any value not in the predefined lists is preserved as an extra checked box
+// so editing never silently drops a category or author.
+function buildMetaForm(prefill = null) {
   const cats = $("metaCategories");
   cats.innerHTML = "";
+  const knownCats = new Set(CATEGORIES);
   CATEGORIES.forEach((c) => {
-    const id = "cat_" + slugify(c);
-    cats.append(checkbox(id, c, c));
+    const box = checkbox("cat_" + slugify(c), c, c);
+    if (prefill && prefill.categories?.includes(c)) box.querySelector("input").checked = true;
+    cats.append(box);
   });
+  (prefill?.categories || [])
+    .filter((c) => !knownCats.has(c))
+    .forEach((c) => {
+      const box = checkbox("cat_extra_" + slugify(c), c, c + " (vlastní)");
+      box.querySelector("input").checked = true;
+      cats.append(box);
+    });
+
   const auth = $("metaAuthors");
   auth.innerHTML = "";
+  const knownAuthors = new Set(AUTHORS.map((a) => a.key));
   AUTHORS.forEach((a) => {
     const box = checkbox("auth_" + a.key, a.key, a.name);
-    // Pre-check the author whose GitHub login matches the logged-in user.
-    if (currentUser && currentUser.login === a.key) box.querySelector("input").checked = true;
+    const input = box.querySelector("input");
+    if (prefill) {
+      if (prefill.authors?.includes(a.key)) input.checked = true;
+    } else if (currentUser && currentUser.login === a.key) {
+      // New post: pre-check the author whose GitHub login matches the user.
+      input.checked = true;
+    }
     auth.append(box);
   });
+  (prefill?.authors || [])
+    .filter((k) => !knownAuthors.has(k))
+    .forEach((k) => {
+      const box = checkbox("auth_extra_" + slugify(k), k, k + " (vlastní)");
+      box.querySelector("input").checked = true;
+      auth.append(box);
+    });
 }
 
 function checkbox(id, value, label) {
@@ -287,12 +365,38 @@ function checkedValues(containerId) {
   return [...$(containerId).querySelectorAll("input:checked")].map((i) => i.value);
 }
 
+// New post: empty form, today's date, author defaulted to the logged-in user.
 function openEditor() {
+  editing = null;
   buildToolbar();
   buildMetaForm();
+  $("editorTitle").textContent = "Nový příspěvek";
   $("metaDate").value = new Date().toISOString().slice(0, 10);
   $("metaTitle").value = "";
   $("blocksContainer").innerHTML = "";
+  $("publishStatus").textContent = "";
+  $("publishBtn").disabled = false;
+  show("view-editor");
+}
+
+// Edit an existing post: load its meta + blocks into the same form. The file is
+// saved back over its original path (filename unchanged) on publish, and its
+// original bytes (`prevText`) are kept so an undo can restore them exactly.
+function editPost() {
+  if (!openedPost || !openedFile) return;
+  editing = { path: openedFile.path, prevText: openedFile.prevText };
+  const m = openedPost.meta || {};
+  buildToolbar();
+  buildMetaForm({ categories: m.categories || [], authors: m.authors || [] });
+  $("editorTitle").textContent = "Upravit příspěvek";
+  $("metaDate").value = m.date || "";
+  $("metaTitle").value = m.title || "";
+  const container = $("blocksContainer");
+  container.innerHTML = "";
+  (openedPost.content || []).forEach((b) => {
+    const card = blockFromJSON(b);
+    if (card) container.append(card);
+  });
   $("publishStatus").textContent = "";
   $("publishBtn").disabled = false;
   show("view-editor");
@@ -342,23 +446,90 @@ async function publishPost() {
     },
     content,
   };
-  const slug = uniqueSlug(slugify(title));
+
+  // Editing keeps the original filename; a new post mints a unique slug.
+  const path = editing ? editing.path : `posts/${uniqueSlug(slugify(title))}.json`;
+  const name = path.replace(/^posts\//, "");
   const files = [
-    { path: `posts/${slug}.json`, content: JSON.stringify(post, null, 4), encoding: "utf-8" },
+    { path, content: JSON.stringify(post, null, 4), encoding: "utf-8" },
     ...extraFiles,
   ];
 
   $("publishBtn").disabled = true;
-  setStatus(`Publikuji ${slug}.json${extraFiles.length ? ` + ${extraFiles.length} PDF` : ""}…`);
+  setStatus(`Publikuji ${name}${extraFiles.length ? ` + ${extraFiles.length} PDF` : ""}…`);
   try {
-    const commit = await publish({ files, message: `Add post: ${title}` });
-    log(`✅ Published ${slug}.json as ${commit.sha.slice(0, 7)} (${files.length} file(s)).`);
+    const message = editing ? `Edit post: ${title}` : `Add post: ${title}`;
+    const commit = await publish({ files, message });
+    log(`✅ Published ${name} as ${commit.sha.slice(0, 7)} (${files.length} file(s)).`);
     setStatus(`✅ Hotovo! Příspěvek "${title}" je publikován (commit ${commit.sha.slice(0, 7)}).`);
+    // Remember this publish so it can be undone from the post list. An edit keeps
+    // the original bytes to restore; a new post just needs its path to delete.
+    lastPublish.set(
+      editing
+        ? { kind: "edit", path, title, commitSha: commit.sha, prevText: editing.prevText }
+        : { kind: "create", path, title, commitSha: commit.sha }
+    );
+    editing = null;
     await loadPosts();
   } catch (e) {
     log("❌ publish: " + e.message);
     setStatus("❌ Publikace selhala — viz log dole.");
     $("publishBtn").disabled = false;
+  }
+}
+
+// ---- undo last publish (Phase 4) ----------------------------------------
+// Shows a card in the post list when there's an undoable publish. Create →
+// delete the JSON; edit → restore the previous bytes. Either way it's a normal
+// new commit on top of HEAD (not a git revert).
+function renderUndo() {
+  const area = $("undoArea");
+  area.innerHTML = "";
+  const last = lastPublish.get();
+  if (!last) return;
+
+  const card = document.createElement("div");
+  card.className = "card";
+  const verb = last.kind === "create" ? "publikování" : "úpravu";
+  const desc = document.createElement("p");
+  desc.className = "muted";
+  desc.style.margin = "0 0 .6rem";
+  desc.textContent =
+    last.kind === "create"
+      ? `Poslední akce: nový příspěvek „${last.title}". Vrácením se příspěvek smaže.`
+      : `Poslední akce: úprava příspěvku „${last.title}". Vrácením se obnoví předchozí verze.`;
+  const btn = document.createElement("button");
+  btn.className = "secondary";
+  btn.textContent = `↩️ Vrátit poslední ${verb}`;
+  btn.onclick = () => undoLastPublish(last);
+  card.append(desc, btn);
+  area.append(card);
+}
+
+async function undoLastPublish(last) {
+  const confirmMsg =
+    last.kind === "create"
+      ? `Smazat příspěvek „${last.title}"? (Případné PDF přílohy zůstanou v repozitáři.)`
+      : `Obnovit předchozí verzi příspěvku „${last.title}"? Tím se zahodí poslední úprava.`;
+  if (!confirm(confirmMsg)) return;
+
+  const area = $("undoArea");
+  area.innerHTML = `<div class="card muted">Vracím…</div>`;
+  try {
+    const commit =
+      last.kind === "create"
+        ? await publish({ deletions: [last.path], message: `Undo: remove ${last.title}` })
+        : await publish({
+            files: [{ path: last.path, content: last.prevText, encoding: "utf-8" }],
+            message: `Undo: restore ${last.title}`,
+          });
+    log(`↩️ Undo ${last.kind} ${last.path} as ${commit.sha.slice(0, 7)}.`);
+    lastPublish.clear();
+    await loadPosts();
+  } catch (e) {
+    log("❌ undo: " + e.message);
+    renderUndo();
+    alert("Vrácení selhalo — viz log dole.");
   }
 }
 
@@ -372,6 +543,7 @@ async function start() {
   $("backBtn").onclick = () => show("view-posts");
   $("refreshBtn").onclick = loadPosts;
   $("newPostBtn").onclick = openEditor;
+  $("editPostBtn").onclick = editPost;
   $("cancelEditBtn").onclick = () => show("view-posts");
   $("publishBtn").onclick = publishPost;
 

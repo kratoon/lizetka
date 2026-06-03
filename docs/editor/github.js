@@ -77,14 +77,15 @@ export async function listPosts() {
 
 // Open one post via the Git *blobs* API (NOT the contents API, which caps at
 // 1 MB — real posts run 1–23 MB because images are inlined base64). The blob
-// `content` is base64 of the raw UTF-8 bytes, wrapped at 60 chars.
-export async function getPostBySha(sha) {
+// `content` is base64 of the raw UTF-8 bytes, wrapped at 60 chars. Returns the
+// decoded UTF-8 string. Edit (Phase 4) keeps this raw text so an undo can
+// restore the exact original bytes rather than a re-stringified approximation.
+export async function getPostTextBySha(sha) {
   const { repoOwner, repoName } = window.CONFIG;
   const blob = await api(`/repos/${repoOwner}/${repoName}/git/blobs/${sha}`);
   const b64 = (blob.content || "").replace(/\n/g, "");
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  const text = new TextDecoder("utf-8").decode(bytes);
-  return JSON.parse(text);
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
 // The post's publish date (meta.date) lives at the very top of its JSON. Read
@@ -110,10 +111,12 @@ export async function getPostDate(name) {
 
 // Publish a set of files as ONE atomic commit via the Git Data API. Committing
 // to the configured branch triggers existing CI (on `main` → deploys lizetka.cz).
-//   files: [{ path, content, encoding: 'utf-8' | 'base64' }]
+//   files:     [{ path, content, encoding: 'utf-8' | 'base64' }]  (add or update)
+//   deletions: [path]                                             (remove)
 // Post JSON goes to posts/<slug>.json (utf-8); PDFs to docs/public/files/<name>
 // (base64) — all in the same tree so the post and its attachments land together.
-export async function publish({ files, message }) {
+// Deletions (Phase 4 undo) drop a path via a tree entry with sha:null.
+export async function publish({ files = [], deletions = [], message }) {
   const { repoOwner, repoName, branch } = window.CONFIG;
   const base = `/repos/${repoOwner}/${repoName}`;
 
@@ -132,6 +135,10 @@ export async function publish({ files, message }) {
       encoding: f.encoding,
     });
     tree.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
+  }
+  // 3b. removals: a tree entry with sha:null deletes the path from base_tree
+  for (const path of deletions) {
+    tree.push({ path, mode: "100644", type: "blob", sha: null });
   }
   // 4. a tree layered on the base
   const newTree = await apiSend(`${base}/git/trees`, "POST", {

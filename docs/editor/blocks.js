@@ -71,10 +71,12 @@ function card(title, body) {
 // --- block factories ------------------------------------------------------
 function headingBlock(data = {}) {
   const level = el("select", { className: "heading-level" });
-  ["h1", "h2", "h3"].forEach((h) =>
+  // h4 is offered too so an edited post's h4 round-trips (write-posts.js renders
+  // it); new posts realistically only use h1–h3 but the extra option is harmless.
+  ["h1", "h2", "h3", "h4"].forEach((h) =>
     level.append(el("option", { value: h, textContent: h.toUpperCase() }))
   );
-  level.value = ["h1", "h2", "h3"].includes(data.type) ? data.type : "h2";
+  level.value = ["h1", "h2", "h3", "h4"].includes(data.type) ? data.type : "h2";
   const text = el("input", { type: "text", placeholder: "Nadpis…", value: data.content || "" });
   const body = el("div", { className: "block-body heading-body" }, [level, text]);
   const wrap = card("Nadpis", body);
@@ -249,6 +251,24 @@ function moreBlock() {
   return wrap;
 }
 
+// Safety net for editing: any block type the editor has no UI for (a future
+// `video`, a multi-photo gallery, a non-"more" comment, …) is shown as a
+// read-only card and re-emitted byte-for-byte on save, so opening a post to edit
+// can never silently drop content. No production post needs this today — pure
+// insurance for the "never drop a block" rule (which bit us once already).
+function passthroughBlock(block) {
+  const body = el(
+    "div",
+    { className: "block-body muted" },
+    `Tento blok (typ "${block.type}") editor neumí upravit, ale zůstane v příspěvku beze změny.`
+  );
+  const wrap = card("⚠️ Neznámý blok (zachován beze změny)", body);
+  wrap._read = () => block;
+  wrap._files = () => [];
+  wrap._validate = () => null;
+  return wrap;
+}
+
 const FACTORIES = {
   heading: headingBlock,
   paragraph: paragraphBlock,
@@ -269,9 +289,12 @@ export function createBlock(typeKey) {
 export function blockFromJSON(block) {
   if (!block || !block.type) return null;
   if (["h1", "h2", "h3", "h4"].includes(block.type)) return headingBlock(block);
-  if (block.type === "comment") return block.content === "more" ? moreBlock() : null;
+  // Only the "more" cutoff has an editable card; any other comment falls through
+  // to the passthrough so it survives the edit untouched.
+  if (block.type === "comment" && block.content === "more") return moreBlock();
   // Existing posts' `gallery` blocks open in the Zonerama cover block.
   const map = { paragraph: paragraphBlock, image: imageBlock, gallery: zoneramaBlock, file: pdfBlock, youtube: youtubeBlock };
   const factory = map[block.type];
-  return factory ? factory(block) : null;
+  // Unknown/unsupported types are preserved verbatim rather than dropped.
+  return factory ? factory(block) : passthroughBlock(block);
 }
