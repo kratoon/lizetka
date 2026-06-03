@@ -4,6 +4,10 @@
     /*--md-primary-fg-color--dark: #90030C;*/
     /*--color-secondary: rgba(234, 122, 255, 0.10196078431372549);*/
     --color-secondar: rgb(222, 217, 182);
+    /* The theme's accent is "custom" (undefined → defaulted to blue). Define it
+       teal so links — "Pokračovat ve čtení", PDF names, hovers, focus — match. */
+    --md-accent-fg-color: #2f6b6e;
+    --md-typeset-a-color: #2f6b6e;
 }
 
 .md-header {
@@ -39,12 +43,15 @@
     font-size: 1.15em;
 }
 
-/* Unify post-title color: the index excerpt rendered titles as blue links
-   (a.toclink) while the article page shows a gray H1. Give H1 the same teal as H2,
-   and make the excerpt heading links inherit their heading color (not link blue),
-   so the title reads teal in both places. */
+/* Unify the post title across views. The index excerpt renders the title as a
+   demoted H2 (teal, 1.4em); the article page renders it as H1. Make H1 match that
+   H2 styling exactly (the big default H1 looked bad) and let excerpt heading links
+   inherit their heading color (not link blue) — so the title looks the same on the
+   frontpage and the opened article. */
 .md-typeset h1 {
     color: #2f6b6e;
+    font-weight: 600;
+    font-size: 1.4em;
 }
 .md-post__content a.toclink {
     color: inherit;
@@ -61,7 +68,7 @@
 }
 @media screen and (max-width: 44.9375em) {
     .md-typeset { font-size: .76rem; }
-    .md-typeset h1 { font-size: 1.5em; }
+    .md-typeset h1 { font-size: 1.25em; }  /* match H2 — title same as frontpage */
     .md-typeset h2 { font-size: 1.25em; }
     .md-typeset h3 { font-size: 1.1em; }
 }

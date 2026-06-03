@@ -17,8 +17,12 @@ Legend: [ ] todo · [~] in progress · [x] done
       (H2 now clearly > H3). *Verify on `/2025/06/01/otabore/`, `/spoleklizetka/`.*
 - [x] **A3 — Wrapping.** Hyphens removed (looked bad); body paragraphs **justified** (academic
       style); `overflow-wrap: break-word`; mobile body/heading sizes trimmed for Baloo 2.
-- [x] **A4 — Title color unified.** Index excerpt titles were blue links, article title a gray H1.
-      Now H1 = teal (matching H2) + excerpt heading links inherit → **teal title in both views**.
+- [x] **A4 — Title unified.** Article H1 restyled to **exactly match the frontpage title**
+      (demoted H2: teal, 1.4em desktop / 1.25em mobile, semibold) — no oversized default H1.
+      Excerpt heading links inherit → identical title on the frontpage and the opened article.
+- [x] **A5 — Links teal.** Defined the theme's "custom" accent (`--md-accent-fg-color`,
+      `--md-typeset-a-color`) as teal → "Pokračovat ve čtení", PDF filename links, hovers/focus
+      all teal (were default blue).
 
 ## B. Left sidebar (prod nav)
 - [x] **B1 — Renamed** Kategorie → **Témata** (+ `archive_name: Archiv`).
