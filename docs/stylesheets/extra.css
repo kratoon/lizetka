@@ -97,7 +97,7 @@
     margin-bottom: .35rem;
 }
 .gallery > div > div:first-child::before {
-    content: "🖼️";
+    content: "📷";
     font-weight: 400;
     flex: 0 0 auto;
 }
@@ -164,10 +164,11 @@
     margin: 0 .3rem;
     color: rgba(0, 0, 0, .3);
 }
-/* Topic: bold, not colored (drop the link accent). */
+/* Topic: normal weight (match the rest of the header), not colored (drop the
+   link accent). */
 .md-post__meta .md-meta__link {
     color: inherit;
-    font-weight: 700;
+    font-weight: 400;
 }
 /* Mobile: guarantee a single line — show only the first topic and drop the
    read-time (lowest value on a phone). date + topic always fit; the hidden
