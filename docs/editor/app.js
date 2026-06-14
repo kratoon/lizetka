@@ -158,6 +158,11 @@ function renderAccount(user) {
 // the user in a half-logged-in state.
 async function logout() {
   const t = token.get();
+  // Build the confirmation the login screen will show after the reload below.
+  // A line in the log panel isn't enough — the reload wipes it, so it only
+  // flashes. This notice survives the reload (sessionStorage) and is rendered
+  // by showLoggedOut(), so the user actually sees that they logged out safely.
+  let notice = "Byl jsi odhlášen.";
   if (t) {
     try {
       const res = await fetch(CONFIG.workerUrl, {
@@ -165,18 +170,34 @@ async function logout() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_token: t }),
       });
-      if (res.ok) log("🔒 Přístupový token byl odvolán na GitHubu.");
-      else log("⚠️ Odvolání tokenu vrátilo " + res.status + " — odhlašuji aspoň lokálně.");
+      if (res.ok) {
+        log("🔒 Přístupový token byl odvolán na GitHubu.");
+        notice = "✅ Byl jsi odhlášen a přístupový token byl odvolán na GitHubu.";
+      } else {
+        log("⚠️ Odvolání tokenu vrátilo " + res.status + " — odhlašuji aspoň lokálně.");
+        notice = "Byl jsi odhlášen. Token se ale nepodařilo odvolat na serveru (stav " + res.status + ").";
+      }
     } catch (e) {
       log("⚠️ Nepodařilo se spojit s Workerem kvůli odvolání tokenu — odhlašuji lokálně: " + e.message);
+      notice = "Byl jsi odhlášen lokálně. Server pro odvolání tokenu byl nedostupný.";
     }
   }
+  try { sessionStorage.setItem("logout_notice", notice); } catch {}
   token.clear();
   location.reload();
 }
 
 function showLoggedOut() {
   $("account").innerHTML = "";
+  // Show the post-logout confirmation set by logout() before it reloaded, then
+  // consume it so it doesn't reappear on later reloads.
+  const notice = sessionStorage.getItem("logout_notice");
+  if (notice) {
+    sessionStorage.removeItem("logout_notice");
+    const el = $("logoutNotice");
+    el.textContent = notice;
+    el.classList.remove("hidden");
+  }
   if (!configReady()) {
     $("loginBtn").disabled = true;
     $("configWarning").classList.remove("hidden");

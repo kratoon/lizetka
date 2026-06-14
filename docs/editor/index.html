@@ -102,6 +102,11 @@
     }
     .hidden { display: none; }
     .muted { color: var(--muted); font-size: .9rem; }
+    /* Post-logout confirmation shown on the login screen (survives the reload). */
+    .notice {
+      background: #e8f0f0; border: 1px solid #bcdad9; color: var(--accent);
+      border-radius: .5rem; padding: .6rem .8rem; margin: 0 0 1rem; font-size: .95rem;
+    }
 
     /* ---- editor (Phase 3) ---- */
     input[type="text"], input[type="url"], input[type="date"], textarea, select {
@@ -165,6 +170,7 @@
   <main>
     <!-- Logged-out view -->
     <section id="view-login" class="card hidden">
+      <p id="logoutNotice" class="notice hidden"></p>
       <h2>Přihlášení</h2>
       <p class="muted">Pro publikování příspěvků se přihlas svým GitHub účtem.</p>
       <button id="loginBtn">Login with GitHub</button>
