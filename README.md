@@ -18,12 +18,14 @@ Use the built-in editor — no Git, JSON, or command line needed:
 2. Write your post: add Heading / Text / Photo / Zonerama link / PDF / YouTube blocks,
    pick a date, category, and author.
 3. Click **Publish**. That's it — the post is committed and the site redeploys within
-   a couple of minutes. Made a mistake? **Edit** or **delete** the post anytime — every
-   change is saved in GitHub's history, so nothing is ever truly lost.
+   a couple of minutes. Made a mistake? **Edit** or **delete** the post anytime (deleting
+   asks you to retype the post's exact title, so you can't remove the wrong one by
+   accident) — every change is saved in GitHub's history, so nothing is ever truly lost.
 
 The editor handles everything behind the scenes: it resizes photos, writes the post
 JSON to `posts/`, uploads any PDFs to `docs/public/files/`, and commits it all to `main`
-in one step, attributed to you.
+in one step, attributed to you. The post list also shows a **“Poslední změny”** panel —
+the latest few changes — so you can confirm your publish or delete went through.
 
 > The old `editor.lizetka.cz` is retired — use `lizetka.cz/editor/`.
 
