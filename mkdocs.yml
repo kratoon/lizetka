@@ -35,9 +35,9 @@ plugins:
 nav:
   - Nejnovější: index.md
   - Fotogalerie:
-      - 2026: fotogalerie/2026.md
-      - 2025: fotogalerie/2025.md
-      - Starší: fotogalerie/starsi.md
+      - 2026: https://eu.zonerama.com/TaborBlata/1967081
+      - 2025: https://eu.zonerama.com/TaborBlata/1480832
+      - starší: https://eu.zonerama.com/rasil/3691
   - Kontakt: https://lizetka.cz/2025/05/01/spoleklizetka/
 
 extra:
@@ -51,6 +51,9 @@ extra:
 # Extra CSS or JavaScript files
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/external-nav.js
 
 # Markdown extensions
 markdown_extensions:
