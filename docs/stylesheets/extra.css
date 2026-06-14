@@ -190,15 +190,25 @@
 .md-nav__link[href*="category/informace"]::before { content: "👪 "; }
 .md-nav__link[href*="category/spolkov"]::before   { content: "🤝 "; }
 
-/* Top-level sidebar entries get icons. Order-based: the blog plugin appends
-   Archiv + Témata after the explicit nav (index.md, Fotogalerie, Kontakt), so:
-   1 📰 Nejnovější · 2 🖼️ Fotogalerie · 3 ✉️ Kontakt · 4 📅 Archiv · 5 🏷️ Témata.
-   Shown on desktop sidebar + mobile drawer. */
+/* Top-level sidebar icons — keyed to DOM position (nth-child), so each icon
+   follows its item regardless of the visual order set below.
+   DOM order: 1 Nejnovější · 2 Fotogalerie · 3 Kontakt · 4 Archiv · 5 Témata. */
 .md-nav--primary > .md-nav__list > .md-nav__item:nth-child(1) > .md-nav__link .md-ellipsis::before { content: "📰 "; }
 .md-nav--primary > .md-nav__list > .md-nav__item:nth-child(2) > .md-nav__link .md-ellipsis::before { content: "🖼️ "; }
-.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(3) > .md-nav__link .md-ellipsis::before { content: "✉️ "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(3) > .md-nav__link .md-ellipsis::before { content: "📞 "; }
 .md-nav--primary > .md-nav__list > .md-nav__item:nth-child(4) > .md-nav__link .md-ellipsis::before { content: "📅 "; }
 .md-nav--primary > .md-nav__list > .md-nav__item:nth-child(5) > .md-nav__link .md-ellipsis::before { content: "🏷️ "; }
+
+/* Visual sidebar order (desktop + mobile) via flexbox `order`, independent of
+   DOM order — the blog plugin appends Archiv+Témata last, so we reposition to:
+   Nejnovější · Témata · Archiv · Fotogalerie · Kontakt. Icons (above) stay with
+   their items since they're keyed to DOM position. */
+.md-nav--primary > .md-nav__list { display: flex; flex-direction: column; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(1) { order: 1; } /* Nejnovější */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(2) { order: 4; } /* Fotogalerie */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(3) { order: 5; } /* Kontakt */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(4) { order: 3; } /* Archiv */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(5) { order: 2; } /* Témata */
 
 /* ---- Desktop sidebar (>=76.25em): clean bordered panel, no site title ------ */
 @media screen and (min-width: 76.25em) {
