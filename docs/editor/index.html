@@ -46,6 +46,13 @@
     }
     button.secondary:hover:not(:disabled) { background: #e7e3d6; }
     button:disabled { opacity: .5; cursor: not-allowed; }
+    /* Logout revokes the token, so it's the recommended "I'm done" action —
+       deliberately prominent: lock-outlined in the header accent colour. */
+    button.logout-btn {
+      background: #fff; color: var(--accent);
+      border: 1.5px solid var(--accent); font-weight: 600;
+    }
+    button.logout-btn:hover:not(:disabled) { background: #e8f0f0; }
     .user { display: flex; align-items: center; gap: .6rem; }
     .user img { width: 32px; height: 32px; border-radius: 50%; }
     .card {

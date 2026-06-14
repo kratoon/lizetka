@@ -148,11 +148,29 @@ function renderAccount(user) {
   $("account").innerHTML =
     `<span class="user"><img src="${user.avatar_url}" alt="">` +
     `<span>${user.login}</span> ` +
-    `<button class="secondary" id="logoutBtn">Odhlásit</button></span>`;
+    `<button class="logout-btn" id="logoutBtn">🔒 Odhlásit a odvolat přístup</button></span>`;
   $("logoutBtn").onclick = logout;
 }
 
-function logout() {
+// Log out = revoke the access token on GitHub (via the Worker) so it's dead
+// everywhere — even a leaked copy — then forget it locally. Best-effort: if the
+// revoke call can't reach GitHub we still log out locally rather than trapping
+// the user in a half-logged-in state.
+async function logout() {
+  const t = token.get();
+  if (t) {
+    try {
+      const res = await fetch(CONFIG.workerUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: t }),
+      });
+      if (res.ok) log("🔒 Přístupový token byl odvolán na GitHubu.");
+      else log("⚠️ Odvolání tokenu vrátilo " + res.status + " — odhlašuji aspoň lokálně.");
+    } catch (e) {
+      log("⚠️ Nepodařilo se spojit s Workerem kvůli odvolání tokenu — odhlašuji lokálně: " + e.message);
+    }
+  }
   token.clear();
   location.reload();
 }

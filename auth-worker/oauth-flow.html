@@ -83,6 +83,11 @@
   .panel li{margin:.4rem 0}
   .panel .no{color:#9a3412;font-weight:600}
 
+  .logout-tip{
+    margin-top:1.4rem;background:var(--teal-soft);border:1px solid #bfe3dd;
+    border-radius:.7rem;padding:.85rem 1.1rem;color:var(--teal);
+    font-size:.92rem;line-height:1.5;
+  }
   footer.note{
     margin-top:2.4rem;font-size:.85rem;color:var(--muted);text-align:center;
     border-top:1px solid var(--line);padding-top:1rem;
@@ -174,8 +179,8 @@
     <div class="num github">8</div>
     <div class="card">
       <div class="who github">GitHub</div>
-      <p class="act">Verifies the code + secret and returns an <strong>access token</strong> scoped to <code>public_repo</code>.</p>
-      <p class="arrow">🔒 GitHub rule: the <code>code</code> is <strong>single-use</strong> and expires within minutes — useless to anyone who grabs it later.</p>
+      <p class="act">Verifies the code + secret and returns the <strong>access token</strong> (scoped to <code>public_repo</code>).</p>
+      <p class="arrow">🔒 GitHub rule: it's the temporary login <code>code</code> — <strong>not</strong> the token — that's single-use and expires within minutes, so a stolen code is useless. The token itself is long-lived (see step 10).</p>
     </div>
   </div>
 
@@ -258,7 +263,8 @@
       <h3>☁️ What the Worker does</h3>
       <ul>
         <li>Holds the <code>client_secret</code> — the one place it exists, never in the browser.</li>
-        <li>Performs the single step a static page can't: the <strong>code → token exchange</strong>.</li>
+        <li>Performs the steps a static page can't (they need the secret): the <strong>code → token exchange</strong> at login…</li>
+        <li>…and <strong>revoking the token on logout</strong> — a kill switch that invalidates it on GitHub, killing even a leaked copy.</li>
         <li>Returns only the token; never echoes the secret.</li>
         <li>Limits CORS to the editor's known origins.</li>
         <li class="no">Does NOT: store data, see passwords, or decide who's allowed to publish — that's the repo's collaborator list.</li>
@@ -266,9 +272,16 @@
     </div>
   </div>
 
+  <div class="logout-tip">
+    💡 <strong>Logging out revokes the token.</strong> Clicking “Odhlásit a odvolat přístup” in the editor tells
+    GitHub to delete the token entirely — so a leaked copy dies instantly. Logging out when you're done is the
+    recommended habit.
+  </div>
+
   <footer class="note">
-    The Worker exists for exactly one reason: GitHub's smooth “click-to-login” flow requires a server-held secret,
-    and a static page can't keep one. Access control is entirely GitHub's repo collaborator permission.
+    The Worker is the system's only backend — there for the two steps that need the server-held secret a static
+    page can't keep: exchanging the login code for a token, and revoking that token on logout. Access control is
+    entirely GitHub's repo collaborator permission.
   </footer>
 
 </div>

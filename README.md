@@ -26,6 +26,27 @@ in one step, attributed to you.
 
 > The old `editor.lizetka.cz` is retired — use `lizetka.cz/editor/`.
 
+### Best practice: log out when you're finished
+
+When you log in, GitHub hands the editor a **key** (called an *access token*) and the
+editor keeps it in your browser so you don't have to log in over and over. That key can
+do everything you can do in the repository, and — left alone — it stays valid
+indefinitely. So the safe habit is simple:
+
+> **When you've finished posting, click the 🔒 “Odhlásit a odvolat přístup” (“Log out &
+> revoke access”) button in the top-right corner.**
+
+That button does more than sign you out of this browser. It tells GitHub to **throw the
+key away completely**. The practical payoff: if a copy of that key ever ended up in the
+wrong hands later — a shared or stolen laptop, a forgotten logged-in session — it's
+already dead and useless, because GitHub no longer recognises it. Nothing is left lying
+around between your visits.
+
+There's **no downside** to logging out. The next time you want to post, just click
+**“Login with GitHub”** again: GitHub remembers you already approved the editor, so it's a
+single click (no forms, no re-approval) and you get a brand-new key. When in doubt, log
+out.
+
 ### Who can publish?
 
 There is **no separate password or invite list to manage in the editor.** Anyone can
@@ -43,8 +64,9 @@ Nothing else to set up.
 
 The editor is a **static page** (`docs/editor/`) that talks directly to the GitHub API
 from the browser. The only backend is one tiny **Cloudflare Worker** (`auth-worker/`)
-whose sole job is the GitHub OAuth token exchange — the one step a static page can't do,
-because it requires a secret the browser must never hold.
+that handles the two GitHub OAuth steps a static page can't do itself (each needs a secret
+the browser must never hold): exchanging your login for an access token, and **revoking
+that token when you log out**.
 
 - 📊 **Visual walkthrough:** open [`auth-worker/oauth-flow.html`](auth-worker/oauth-flow.html)
   in a browser — it diagrams the whole login-to-publish flow, what the Worker does, and
@@ -53,7 +75,8 @@ because it requires a secret the browser must never hold.
 
 In short: **identity** comes from GitHub OAuth login; **authorization to publish** comes
 from your repo collaborator permission, enforced by GitHub. The Worker holds the OAuth
-secret and nothing else — it stores no data and decides nothing about access.
+secret and uses it only for the login token-exchange and the logout token-revocation — it
+stores no data and decides nothing about who's allowed to publish.
 
 ---
 
