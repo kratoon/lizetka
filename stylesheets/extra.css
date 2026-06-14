@@ -1,0 +1,251 @@
+:root {
+    /*--md-primary-fg-color: #ae358e;*/
+    /*--md-primary-fg-color--light: #ECB7B7;*/
+    /*--md-primary-fg-color--dark: #90030C;*/
+    /*--color-secondary: rgba(234, 122, 255, 0.10196078431372549);*/
+    --color-secondar: rgb(222, 217, 182);
+    /* The theme's accent is "custom" (undefined → defaulted to blue). Define it
+       teal so accent-colored UI (link hover, focus rings, etc.) is teal. */
+    --md-accent-fg-color: #2f6b6e;
+}
+
+.md-header {
+    background-color: rgb(222, 217, 182);
+}
+
+/*.md-tabs__item--active {*/
+/*    background-color: var(--color-secondary);*/
+/*}*/
+
+/*.md-tabs__item--active:before {*/
+/*    content: "";*/
+/*    height: 3px;*/
+/*    display: block;*/
+/*    background: #ae358e;*/
+/*}*/
+
+.md-footer {
+    background-color: rgb(222, 217, 182);
+}
+
+/* Heading hierarchy: H2 is the teal section head (semibold, clearly larger),
+   H3 is smaller bold black. Sizes set explicitly so H2 > H3 regardless of theme. */
+.md-typeset h2 {
+    color: #2f6b6e;
+    font-weight: 600;
+    font-size: 1.4em;
+}
+
+.md-typeset h3 {
+    color: #000;
+    font-weight: 700;
+    font-size: 1.15em;
+}
+
+/* Unify the post title across views. The index excerpt renders the title as a
+   demoted H2 (teal, 1.4em); the article page renders it as H1. Make H1 match that
+   H2 styling exactly (the big default H1 looked bad) and let excerpt heading links
+   inherit their heading color (not link blue) — so the title looks the same on the
+   frontpage and the opened article. */
+.md-typeset h1 {
+    color: #2f6b6e;
+    font-weight: 600;
+    font-size: 1.4em;
+}
+.md-post__content a.toclink {
+    color: inherit;
+}
+/* Base content-link color → teal. Material sets --md-typeset-a-color on the body
+   (scheme) level, which beats a :root override, so set the link color directly
+   here. Covers "Pokračovat ve čtení", PDF filename links, and in-text links. (The
+   more-specific toclink/meta rules above still win and stay inherit.) */
+.md-typeset a {
+    color: var(--md-accent-fg-color);
+}
+
+/* Wrapping: no hyphenation (looked bad). Justify body paragraphs like an academic
+   article; let the rare over-long word break instead of overflowing. On phones,
+   trim body + heading sizes a touch so the wide Baloo 2 reads cleanly. */
+.md-typeset {
+    overflow-wrap: break-word;
+}
+.md-typeset p {
+    text-align: justify;
+}
+@media screen and (max-width: 44.9375em) {
+    .md-typeset { font-size: .76rem; }
+    .md-typeset h1 { font-size: 1.25em; }  /* match H2 — title same as frontpage */
+    .md-typeset h2 { font-size: 1.25em; }
+    .md-typeset h3 { font-size: 1.1em; }
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.gallery img:hover {
+    border: transparent solid 4px;
+}
+
+/* Zonerama gallery caption ("header" above the cover photo): bold + a link icon
+   that always leads, signalling the cover clicks through to the Zonerama album. */
+.gallery > div > div:first-child {
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    margin-bottom: .35rem;
+}
+.gallery > div > div:first-child::before {
+    content: "📷";
+    font-weight: 400;
+    flex: 0 0 auto;
+}
+
+/* ---- Inline photos (Fotka) -------------------------------------------------
+   Desktop: "magazine banner" — full column width, capped height, `object-fit:
+   cover` so tall portraits are center-cropped to a consistent banner (landscapes
+   that already fit the cap aren't cropped). Phones: keep portraits WHOLE (width
+   auto + caps preserve the aspect ratio, no crop). Targets build/images photos
+   WITHOUT an inline style — Zonerama gallery covers keep their own 8rem look. */
+.md-typeset img[src*="/build/images/"]:not([style]) {
+    display: block;
+    width: 100%;
+    max-height: 32rem;
+    object-fit: cover;
+    object-position: center;
+    margin: 1rem auto;
+    border-radius: .4rem;
+}
+@media screen and (max-width: 44.9375em) {
+    .md-typeset img[src*="/build/images/"]:not([style]) {
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: 24rem;
+        object-fit: fill;
+    }
+}
+
+/* PDF link icon: the generated <img> hard-codes height:4rem inline (oversized);
+   shrink it. !important is needed to beat the inline style. */
+.md-typeset img[src*="icon-pdf"] {
+    height: 2.2rem !important;
+}
+
+@media (min-width: 540px) {
+    .sm\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 720px) {
+    .md\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* ---- Post meta row: date | topic | read-time --------------------------- */
+/* Lay the items in a flex row (flex collapses the source whitespace between
+   them) and put a centered "|" before every item after the first, with equal
+   margins on both sides — so the gaps around each pipe are even. */
+.md-post__meta .md-meta__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+}
+/* Kill Material's default middot separator — we use our own pipe instead (it was
+   stacking with ours and the combined margins made the gaps huge). */
+.md-post__meta .md-meta__item:not(:last-child)::after {
+    content: none;
+}
+.md-post__meta .md-meta__item:not(:first-child)::before {
+    content: "|";
+    margin: 0 .3rem;
+    color: rgba(0, 0, 0, .3);
+}
+/* Topic: normal weight (match the rest of the header), not colored (drop the
+   link accent). */
+.md-post__meta .md-meta__link {
+    color: inherit;
+    font-weight: 400;
+}
+/* Mobile: guarantee a single line — show only the first topic and drop the
+   read-time (lowest value on a phone). date + topic always fit; the hidden
+   item's "|" goes with it, so no orphaned separator. */
+@media screen and (max-width: 44.9375em) {
+    .md-post__meta .md-meta__item--cats .md-cat:nth-of-type(n+2),
+    .md-post__meta .md-meta__item--readtime {
+        display: none;
+    }
+}
+
+/* ---- Left sidebar: per-topic icons + a little definition --------------- */
+/* Icons in the Témata list, keyed on the category URL slug. Scoped to nav
+   links so the post-meta topic links stay icon-free. Works with relative and
+   %-encoded hrefs because [href*=] matches a substring. */
+.md-nav__link[href*="category/na-t"]::before     { content: "⛺ "; }
+.md-nav__link[href*="category/o-t"]::before       { content: "📖 "; }
+.md-nav__link[href*="category/po-t"]::before      { content: "📸 "; }
+.md-nav__link[href*="category/informace"]::before { content: "👪 "; }
+.md-nav__link[href*="category/spolkov"]::before   { content: "🤝 "; }
+
+/* Top-level sidebar icons — keyed to DOM position (nth-child), so each icon
+   follows its item regardless of the visual order set below.
+   DOM order: 1 Nejnovější · 2 Fotogalerie · 3 Kontakt · 4 Archiv · 5 Témata. */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(1) > .md-nav__link .md-ellipsis::before { content: "📰 "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(2) > .md-nav__link .md-ellipsis::before { content: "🖼️ "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(3) > .md-nav__link .md-ellipsis::before { content: "📞 "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(4) > .md-nav__link .md-ellipsis::before { content: "📅 "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(5) > .md-nav__link .md-ellipsis::before { content: "🏷️ "; }
+
+/* Visual sidebar order (desktop + mobile) via flexbox `order`, independent of
+   DOM order — the blog plugin appends Archiv+Témata last, so we reposition to:
+   Nejnovější · Témata · Archiv · Fotogalerie · Kontakt. Icons (above) stay with
+   their items since they're keyed to DOM position. */
+.md-nav--primary > .md-nav__list { display: flex; flex-direction: column; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(1) { order: 1; } /* Nejnovější */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(2) { order: 4; } /* Fotogalerie */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(3) { order: 5; } /* Kontakt */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(4) { order: 3; } /* Archiv */
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(5) { order: 2; } /* Témata */
+
+/* ---- Desktop sidebar (>=76.25em): clean bordered panel, no site title ------ */
+@media screen and (min-width: 76.25em) {
+    /* Drop the redundant "Lizetka" logo/title above the nav (logo stays in the header). */
+    .md-sidebar--primary .md-nav--primary > .md-nav__title {
+        display: none;
+    }
+    /* A touch wider, with breathing room before the article content. */
+    .md-sidebar--primary {
+        width: 13.5rem;
+    }
+    .md-sidebar--primary .md-sidebar__inner {
+        padding-right: .9rem;
+    }
+    /* Defined panel: solid warm background + crisp border (no washed-out blur). */
+    .md-sidebar--primary .md-nav--primary > .md-nav__list {
+        border: 1px solid rgb(190, 183, 140);
+        border-radius: .6rem;
+        padding: .55rem .5rem;
+        background: #f7f5ee;
+    }
+    /* Roomier, bolder top-level entries with a clear hover. */
+    .md-sidebar--primary .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
+        font-weight: 600;
+        border-radius: .4rem;
+        padding: .5rem .6rem;
+        margin: .15rem 0;
+    }
+    .md-sidebar--primary .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link:hover {
+        background: rgba(47, 107, 110, .08);
+        color: #2f6b6e;
+    }
+}
+
+/* ---- Mobile drawer (<76.25em): point the section arrows down, not right ---- */
+@media screen and (max-width: 76.234em) {
+    .md-nav--primary .md-nav__item--nested > .md-nav__link > .md-nav__icon {
+        transform: rotate(90deg);
+    }
+}
