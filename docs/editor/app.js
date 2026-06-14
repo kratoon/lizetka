@@ -7,6 +7,7 @@ import {
   getUser,
   canPush,
   listPosts,
+  listRecentCommits,
   getPostTextBySha,
   getPostDate,
   publish,
@@ -41,46 +42,15 @@ const DEFAULT_NEW_POST_BLOCKS = ["heading", "paragraph", "zonerama", "more"];
 let currentUser = null;
 let currentPosts = [];
 
-// Edit state (Phase 4). `editing` is null for a brand-new post, or
-// { path, prevText } when editing an existing file (path = keep the filename,
-// prevText = the original bytes, kept so an undo can restore them exactly).
+// Edit state. `editing` is null for a brand-new post, or { path } when editing
+// an existing file (path = keep the same filename when saving).
 let editing = null;
 // The post currently open in the read-only preview + its file info, so the
-// "Upravit" button can hand them to the editor.
+// "Upravit" / "Odstranit" buttons can act on it.
 let openedPost = null;
 let openedFile = null;
-
-// Record of the last publish so it can be undone. Kept in memory (primary) and
-// mirrored to localStorage so a create-undo survives a reload. An edit's record
-// carries the previous file bytes (`prevText`), which for image-heavy posts can
-// be many MB and exceed the localStorage quota — so persistence is best-effort:
-// if it fails we keep the in-memory copy (undo still works this session) and
-// clear any stale stored record rather than letting a failed publish look broken.
-const LAST_PUBLISH_KEY = "lizetka_last_publish";
-let memUndo = null;
-const lastPublish = {
-  get() {
-    if (memUndo) return memUndo;
-    try {
-      return JSON.parse(localStorage.getItem(LAST_PUBLISH_KEY) || "null");
-    } catch {
-      return null;
-    }
-  },
-  set(v) {
-    memUndo = v;
-    try {
-      localStorage.setItem(LAST_PUBLISH_KEY, JSON.stringify(v));
-    } catch {
-      localStorage.removeItem(LAST_PUBLISH_KEY);
-      log("ℹ️ Undo info too large to save across reloads — undo works until you reload.");
-    }
-  },
-  clear() {
-    memUndo = null;
-    localStorage.removeItem(LAST_PUBLISH_KEY);
-  },
-};
+// The exact post title the user must retype to confirm a delete.
+let deleteExpected = "";
 
 // The editor's own URL, used as the OAuth redirect target. Register this exact
 // value as the OAuth App's "Authorization callback URL".
@@ -214,7 +184,7 @@ async function loadPosts() {
   show("view-posts");
   $("postsRepo").textContent = CONFIG.repoOwner + "/" + CONFIG.repoName;
   $("postsBranch").textContent = CONFIG.branch;
-  renderUndo();
+  renderRecentActivity();
 
   const list = $("postList");
   list.innerHTML = `<div class="card muted">Načítám…</div>`;
@@ -266,16 +236,18 @@ async function openPost(p) {
   $("postMeta").textContent = "Načítám…";
   $("postBlocks").innerHTML = "";
   $("editPostBtn").disabled = true;
+  $("deletePostBtn").disabled = true;
+  closeDeleteConfirm();
   openedPost = null;
   openedFile = null;
   try {
-    // Keep the raw bytes (for edit-undo) alongside the parsed post (for the form).
     const text = await getPostTextBySha(p.sha);
     const post = JSON.parse(text);
     openedPost = post;
-    openedFile = { path: p.path, name: p.name, prevText: text };
+    openedFile = { path: p.path, name: p.name };
     renderPost(post);
     $("editPostBtn").disabled = false;
+    $("deletePostBtn").disabled = false;
     log(`Opened ${p.name} (${post.content?.length ?? 0} blocks).`);
   } catch (e) {
     $("postMeta").textContent = "❌ Nepodařilo se otevřít příspěvek.";
@@ -426,11 +398,10 @@ function openEditor() {
 }
 
 // Edit an existing post: load its meta + blocks into the same form. The file is
-// saved back over its original path (filename unchanged) on publish, and its
-// original bytes (`prevText`) are kept so an undo can restore them exactly.
+// saved back over its original path (filename unchanged) on publish.
 function editPost() {
   if (!openedPost || !openedFile) return;
-  editing = { path: openedFile.path, prevText: openedFile.prevText };
+  editing = { path: openedFile.path };
   const m = openedPost.meta || {};
   buildToolbar();
   buildMetaForm({ categories: m.categories || [], authors: m.authors || [] });
@@ -508,13 +479,6 @@ async function publishPost() {
     const commit = await publish({ files, message });
     log(`✅ Published ${name} as ${commit.sha.slice(0, 7)} (${files.length} file(s)).`);
     setStatus(`✅ Hotovo! Příspěvek "${title}" je publikován (commit ${commit.sha.slice(0, 7)}).`);
-    // Remember this publish so it can be undone from the post list. An edit keeps
-    // the original bytes to restore; a new post just needs its path to delete.
-    lastPublish.set(
-      editing
-        ? { kind: "edit", path, title, commitSha: commit.sha, prevText: editing.prevText }
-        : { kind: "create", path, title, commitSha: commit.sha }
-    );
     editing = null;
     await loadPosts();
   } catch (e) {
@@ -524,58 +488,107 @@ async function publishPost() {
   }
 }
 
-// ---- undo last publish (Phase 4) ----------------------------------------
-// Shows a card in the post list when there's an undoable publish. Create →
-// delete the JSON; edit → restore the previous bytes. Either way it's a normal
-// new commit on top of HEAD (not a git revert).
-function renderUndo() {
-  const area = $("undoArea");
+// ---- recent activity ----------------------------------------------------
+// The last few commits on the branch (replaces the old undo card). Read-only:
+// a quick "what changed lately" feed above the post list. Non-critical — if the
+// fetch fails we just skip the panel rather than blocking the list.
+async function renderRecentActivity() {
+  const area = $("recentActivity");
   area.innerHTML = "";
-  const last = lastPublish.get();
-  if (!last) return;
+  let commits;
+  try {
+    commits = await listRecentCommits(3);
+  } catch (e) {
+    log("ℹ️ Nepodařilo se načíst poslední změny: " + e.message);
+    return;
+  }
+  if (!commits.length) return;
 
   const card = document.createElement("div");
   card.className = "card";
-  const verb = last.kind === "create" ? "publikování" : "úpravu";
-  const desc = document.createElement("p");
-  desc.className = "muted";
-  desc.style.margin = "0 0 .6rem";
-  desc.textContent =
-    last.kind === "create"
-      ? `Poslední akce: nový příspěvek „${last.title}". Vrácením se příspěvek smaže.`
-      : `Poslední akce: úprava příspěvku „${last.title}". Vrácením se obnoví předchozí verze.`;
-  const btn = document.createElement("button");
-  btn.className = "secondary";
-  btn.textContent = `↩️ Vrátit poslední ${verb}`;
-  btn.onclick = () => undoLastPublish(last);
-  card.append(desc, btn);
+  const h = document.createElement("h3");
+  h.textContent = "Poslední změny";
+  h.style.margin = "0 0 .6rem";
+  card.append(h);
+
+  commits.forEach((c) => {
+    const row = document.createElement("div");
+    row.className = "activity-row";
+    const msg = document.createElement("a");
+    msg.href = c.url;
+    msg.target = "_blank";
+    msg.rel = "noopener";
+    msg.textContent = c.message;
+    const meta = document.createElement("span");
+    meta.className = "muted";
+    meta.textContent = ` — ${c.author}${c.date ? ", " + relativeTime(c.date) : ""}`;
+    row.append(msg, meta);
+    card.append(row);
+  });
   area.append(card);
 }
 
-async function undoLastPublish(last) {
-  const confirmMsg =
-    last.kind === "create"
-      ? `Smazat příspěvek „${last.title}"? (Případné PDF přílohy zůstanou v repozitáři.)`
-      : `Obnovit předchozí verzi příspěvku „${last.title}"? Tím se zahodí poslední úprava.`;
-  if (!confirm(confirmMsg)) return;
+// Rough Czech relative time for the activity feed ("před 2 h", "včera", date).
+function relativeTime(iso) {
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (min < 1) return "právě teď";
+  if (min < 60) return `před ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `před ${h} h`;
+  const d = Math.round(h / 24);
+  if (d === 1) return "včera";
+  if (d < 30) return `před ${d} dny`;
+  return new Date(iso).toLocaleDateString("cs-CZ");
+}
 
-  const area = $("undoArea");
-  area.innerHTML = `<div class="card muted">Vracím…</div>`;
+// ---- delete a post ------------------------------------------------------
+// Guarded by a type-the-exact-title confirmation (no password — repo Write
+// access is the real gate, and a delete is just a commit, recoverable from
+// GitHub history). Removes the post's JSON in one commit; any attached PDFs are
+// left in place (harmless — the build regenerates from the remaining posts).
+function openDeleteConfirm() {
+  if (!openedPost || !openedFile) return;
+  deleteExpected = (openedPost.meta?.title || openedFile.name || "").trim();
+  $("deleteConfirmTitle").textContent = `„${deleteExpected}"`;
+  $("deleteConfirmInput").value = "";
+  $("deleteConfirmBtn").disabled = true;
+  $("deleteStatus").textContent = "";
+  $("deleteConfirm").classList.remove("hidden");
+  $("deleteConfirmInput").focus();
+}
+
+function closeDeleteConfirm() {
+  $("deleteConfirm").classList.add("hidden");
+}
+
+// Enable the delete button only when the typed title matches exactly.
+function onDeleteInput() {
+  $("deleteConfirmBtn").disabled =
+    $("deleteConfirmInput").value.trim() !== deleteExpected;
+}
+
+async function doDeletePost() {
+  if (!openedFile) return;
+  const title = deleteExpected;
+  $("deleteConfirmBtn").disabled = true;
+  $("deleteCancelBtn").disabled = true;
+  $("deleteStatus").textContent = "Odstraňuji…";
   try {
-    const commit =
-      last.kind === "create"
-        ? await publish({ deletions: [last.path], message: `Undo: remove ${last.title}` })
-        : await publish({
-            files: [{ path: last.path, content: last.prevText, encoding: "utf-8" }],
-            message: `Undo: restore ${last.title}`,
-          });
-    log(`↩️ Undo ${last.kind} ${last.path} as ${commit.sha.slice(0, 7)}.`);
-    lastPublish.clear();
+    const commit = await publish({
+      deletions: [openedFile.path],
+      message: `Delete post: ${title}`,
+    });
+    log(`🗑️ Smazán ${openedFile.name} jako ${commit.sha.slice(0, 7)}.`);
+    $("deleteCancelBtn").disabled = false;
+    closeDeleteConfirm();
+    show("view-posts");
     await loadPosts();
   } catch (e) {
-    log("❌ undo: " + e.message);
-    renderUndo();
-    alert("Vrácení selhalo — detaily v „Technickém logu\" dole.");
+    log("❌ delete: " + e.message);
+    $("deleteStatus").textContent =
+      "❌ Odstranění selhalo — detaily v „Technickém logu\" dole.";
+    $("deleteCancelBtn").disabled = false;
+    // The confirm button stays disabled; the input handler re-enables it on a valid retype.
   }
 }
 
@@ -590,6 +603,10 @@ async function start() {
   $("refreshBtn").onclick = loadPosts;
   $("newPostBtn").onclick = openEditor;
   $("editPostBtn").onclick = editPost;
+  $("deletePostBtn").onclick = openDeleteConfirm;
+  $("deleteCancelBtn").onclick = closeDeleteConfirm;
+  $("deleteConfirmBtn").onclick = doDeletePost;
+  $("deleteConfirmInput").oninput = onDeleteInput;
   $("cancelEditBtn").onclick = () => show("view-posts");
   $("publishBtn").onclick = publishPost;
 

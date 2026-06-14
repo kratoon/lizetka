@@ -18,7 +18,8 @@ Use the built-in editor — no Git, JSON, or command line needed:
 2. Write your post: add Heading / Text / Photo / Zonerama link / PDF / YouTube blocks,
    pick a date, category, and author.
 3. Click **Publish**. That's it — the post is committed and the site redeploys within
-   a couple of minutes. Made a mistake? Use **“Undo last publish.”**
+   a couple of minutes. Made a mistake? **Edit** or **delete** the post anytime — every
+   change is saved in GitHub's history, so nothing is ever truly lost.
 
 The editor handles everything behind the scenes: it resizes photos, writes the post
 JSON to `posts/`, uploads any PDFs to `docs/public/files/`, and commits it all to `main`

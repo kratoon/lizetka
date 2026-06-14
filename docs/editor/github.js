@@ -75,11 +75,28 @@ export async function listPosts() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+// Recent commits on the working branch — a small read-only "what changed
+// lately" feed shown above the post list (replaces the old undo card). Returns
+// the first line of each message plus who/when/link.
+export async function listRecentCommits(n = 3) {
+  const { repoOwner, repoName, branch } = window.CONFIG;
+  const commits = await api(
+    `/repos/${repoOwner}/${repoName}/commits?sha=${branch}&per_page=${n}`
+  );
+  return commits.map((c) => ({
+    sha: c.sha,
+    message: (c.commit?.message || "").split("\n")[0],
+    author: c.author?.login || c.commit?.author?.name || "?",
+    date: c.commit?.author?.date || null,
+    url: c.html_url,
+  }));
+}
+
 // Open one post via the Git *blobs* API (NOT the contents API, which caps at
 // 1 MB — real posts run 1–23 MB because images are inlined base64). The blob
 // `content` is base64 of the raw UTF-8 bytes, wrapped at 60 chars. Returns the
-// decoded UTF-8 string. Edit (Phase 4) keeps this raw text so an undo can
-// restore the exact original bytes rather than a re-stringified approximation.
+// decoded UTF-8 string (parsed for the read-only preview and loaded into the
+// edit form).
 export async function getPostTextBySha(sha) {
   const { repoOwner, repoName } = window.CONFIG;
   const blob = await api(`/repos/${repoOwner}/${repoName}/git/blobs/${sha}`);
@@ -115,7 +132,7 @@ export async function getPostDate(name) {
 //   deletions: [path]                                             (remove)
 // Post JSON goes to posts/<slug>.json (utf-8); PDFs to docs/public/files/<name>
 // (base64) — all in the same tree so the post and its attachments land together.
-// Deletions (Phase 4 undo) drop a path via a tree entry with sha:null.
+// Deletions drop a path via a tree entry with sha:null (used by "Odstranit").
 export async function publish({ files = [], deletions = [], message }) {
   const { repoOwner, repoName, branch } = window.CONFIG;
   const base = `/repos/${repoOwner}/${repoName}`;

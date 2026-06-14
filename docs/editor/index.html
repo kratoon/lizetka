@@ -107,6 +107,15 @@
       background: #e8f0f0; border: 1px solid #bcdad9; color: var(--accent);
       border-radius: .5rem; padding: .6rem .8rem; margin: 0 0 1rem; font-size: .95rem;
     }
+    /* Destructive actions (delete): outlined red, clearly distinct from teal. */
+    button.danger { background: #fff; color: #b3261e; border: 1.5px solid #e6b4b0; }
+    button.danger:hover:not(:disabled) { background: #fbeceb; }
+    .danger-card { border-color: #e6b4b0; }
+    /* Recent-activity feed above the post list. */
+    .activity-row { font-size: .9rem; padding: .35rem 0; border-bottom: 1px solid #f0f0f0; }
+    .activity-row:last-child { border-bottom: 0; }
+    .activity-row a { color: var(--accent); text-decoration: none; }
+    .activity-row a:hover { text-decoration: underline; }
 
     /* ---- editor (Phase 3) ---- */
     input[type="text"], input[type="url"], input[type="date"], textarea, select {
@@ -201,21 +210,37 @@
           <button class="secondary" id="refreshBtn">🔄 Načíst znovu</button>
         </div>
       </div>
-      <div id="undoArea"></div>
+      <div id="recentActivity"></div>
       <div id="postList"></div>
     </section>
 
-    <!-- Single post — read-only preview + edit entry point (Phase 2/4) -->
+    <!-- Single post — read-only preview + edit/delete entry points -->
     <section id="view-post" class="hidden">
       <div class="card">
         <div class="toolbar">
           <button class="secondary" id="backBtn">← Zpět na seznam</button>
           <button id="editPostBtn">✏️ Upravit</button>
+          <button class="danger" id="deletePostBtn">🗑️ Odstranit</button>
         </div>
         <h2 id="postTitle"></h2>
         <p class="muted" id="postMeta"></p>
         <div id="postBlocks"></div>
         <p class="muted">📖 Náhled jen pro čtení. Pro úpravy klikni na „✏️ Upravit".</p>
+      </div>
+
+      <!-- Delete confirmation: retype the exact title to enable the button. -->
+      <div id="deleteConfirm" class="card danger-card hidden">
+        <h3>🗑️ Odstranit příspěvek</h3>
+        <p>Chystáš se odstranit příspěvek <strong id="deleteConfirmTitle"></strong>.
+           Tuto akci nelze v editoru vrátit (příspěvek ale zůstává v historii na
+           GitHubu a dá se odtud obnovit).</p>
+        <label class="field-label" for="deleteConfirmInput">Pro potvrzení napiš přesný název příspěvku:</label>
+        <input type="text" id="deleteConfirmInput" autocomplete="off" />
+        <div class="toolbar">
+          <button class="secondary" id="deleteCancelBtn">Zrušit</button>
+          <button class="danger" id="deleteConfirmBtn" disabled>Definitivně odstranit</button>
+        </div>
+        <p class="muted" id="deleteStatus"></p>
       </div>
     </section>
 
