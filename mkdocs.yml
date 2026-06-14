@@ -14,7 +14,7 @@ theme:
       primary: white
       accent: custom
   font:
-    text: Roboto
+    text: Baloo 2
     code: Roboto Mono
 
 # Plugins configuration
@@ -26,12 +26,14 @@ plugins:
   - blog:
       enabled: true
       blog_dir: .  # Directory where blog posts are located
+      archive_name: Archiv
+      categories_name: Témata
       # You can add more configuration options for the blog plugin as needed
   - git-revision-date-localized
 
 # Navigation configuration
 nav:
-  - Blog: index.md
+  - Nejnovější: index.md
     
 extra:
   generator: false

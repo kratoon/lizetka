@@ -1,0 +1,13 @@
+# Cloudflare Worker config for the Lizetka editor OAuth token exchange.
+# Deploy with:  cd auth-worker && npx wrangler deploy
+name = "lizetka-auth"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+# Your GitHub OAuth App's Client ID (public — safe to commit).
+# Fill this in after you register the OAuth App.
+GITHUB_CLIENT_ID = "Ov23liaT1786vhhNSZAx"
+
+# GITHUB_CLIENT_SECRET is NOT set here. It is a secret — set it with:
+#   cd auth-worker && npx wrangler secret put GITHUB_CLIENT_SECRET

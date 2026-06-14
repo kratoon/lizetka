@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lizetka editor — login &amp; publish flow</title>
+<style>
+  :root{
+    --teal:#0f766e; --teal-soft:#d7efec;
+    --amber:#b45309; --amber-soft:#fbe5cf;
+    --slate:#1f2937; --slate-soft:#e2e6ec;
+    --ink:#2b2620;
+    --beige:#f6efe3; --line:#e6ddcb; --muted:#7a7163;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--beige); color:var(--ink);
+    font:16px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;
+    padding:2rem 1rem 4rem;
+  }
+  .wrap{max-width:920px;margin:0 auto}
+  header.page{text-align:center;margin-bottom:1.6rem}
+  header.page h1{margin:.2rem 0;color:var(--teal);font-size:1.7rem}
+  header.page p{margin:.2rem 0;color:var(--muted)}
+  .legend{
+    display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin:1.2rem 0 2rem;
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:.4rem;
+    padding:.3rem .7rem;border-radius:999px;font-size:.85rem;font-weight:600;
+    border:1px solid transparent;
+  }
+  .chip.browser{background:var(--teal-soft);color:var(--teal);border-color:#bfe3dd}
+  .chip.worker{background:var(--amber-soft);color:var(--amber);border-color:#f0d4a8}
+  .chip.github{background:var(--slate-soft);color:var(--slate);border-color:#cbd2dc}
+
+  .phase{margin:2.2rem 0 .6rem}
+  .phase h2{
+    font-size:1.05rem;color:var(--teal);margin:0 0 .2rem;
+    border-bottom:2px solid var(--line);padding-bottom:.35rem;
+  }
+  .phase .sub{color:var(--muted);font-size:.88rem;margin:.15rem 0 0}
+
+  .step{
+    position:relative;display:grid;grid-template-columns:2.1rem 1fr;gap:.9rem;
+    padding:.2rem 0 1.1rem 0;
+  }
+  /* connector line */
+  .step::before{
+    content:"";position:absolute;left:1.04rem;top:2.1rem;bottom:-.2rem;
+    width:2px;background:var(--line);
+  }
+  .step:last-child::before{display:none}
+  .num{
+    grid-row:1;width:2.1rem;height:2.1rem;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:.9rem;color:#fff;background:var(--teal);
+    box-shadow:0 0 0 4px var(--beige);z-index:1;
+  }
+  .num.worker{background:var(--amber)}
+  .num.github{background:var(--slate)}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:.7rem;
+    padding:.75rem .9rem;
+  }
+  .card .who{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.25rem}
+  .who.browser{color:var(--teal)} .who.worker{color:var(--amber)} .who.github{color:var(--slate)}
+  .card .act{margin:0}
+  .card code{
+    background:var(--slate-soft);padding:.05rem .35rem;border-radius:.3rem;
+    font-size:.85em;color:var(--slate);word-break:break-word;
+  }
+  .arrow{font-size:.8rem;color:var(--muted);font-weight:600;margin-top:.4rem}
+
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2.6rem}
+  @media(max-width:680px){.panels{grid-template-columns:1fr}}
+  .panel{border-radius:.8rem;padding:1rem 1.1rem;border:1px solid var(--line)}
+  .panel.github{background:#fff;border-left:5px solid var(--slate)}
+  .panel.worker{background:#fff;border-left:5px solid var(--amber)}
+  .panel h3{margin:.1rem 0 .6rem;font-size:1rem}
+  .panel.github h3{color:var(--slate)} .panel.worker h3{color:var(--amber)}
+  .panel ul{margin:.2rem 0;padding-left:1.1rem}
+  .panel li{margin:.4rem 0}
+  .panel .no{color:#9a3412;font-weight:600}
+
+  .logout-tip{
+    margin-top:1.4rem;background:var(--teal-soft);border:1px solid #bfe3dd;
+    border-radius:.7rem;padding:.85rem 1.1rem;color:var(--teal);
+    font-size:.92rem;line-height:1.5;
+  }
+  footer.note{
+    margin-top:2.4rem;font-size:.85rem;color:var(--muted);text-align:center;
+    border-top:1px solid var(--line);padding-top:1rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>🏕️ Lizetka editor — login &amp; publish flow</h1>
+    <p>From opening <code>lizetka.cz/editor/</code> to a published post.</p>
+    <p>How the OAuth handshake works, what the Worker does, and which rules GitHub enforces.</p>
+  </header>
+
+  <div class="legend">
+    <span class="chip browser">🧑 Author's browser <span style="font-weight:400">(static editor page)</span></span>
+    <span class="chip worker">☁️ Cloudflare Worker <span style="font-weight:400">(lizetka-auth)</span></span>
+    <span class="chip github">🐙 GitHub</span>
+  </div>
+
+  <!-- ===================== PHASE A: LOGIN ===================== -->
+  <section class="phase">
+    <h2>A · Logging in (the OAuth handshake)</h2>
+    <p class="sub">Happens once. After this the author stays logged in — tokens don't expire.</p>
+  </section>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="card">
+      <div class="who browser">Browser</div>
+      <p class="act">Author opens <code>https://lizetka.cz/editor/</code>. It's a plain static page — no server, no database. Loads instantly.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="card">
+      <div class="who browser">Browser</div>
+      <p class="act">Author clicks <strong>“Login with GitHub.”</strong> The editor generates a random <code>state</code> string (a one-time anti-forgery token), saves it, and redirects the browser to GitHub's authorize page with the public <code>client_id</code>, the <code>redirect_uri</code>, <code>scope=public_repo</code>, and that <code>state</code>.</p>
+      <p class="arrow">↓ browser is sent to <code>github.com/login/oauth/authorize</code></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num github">3</div>
+    <div class="card">
+      <div class="who github">GitHub</div>
+      <p class="act">Shows the <strong>“Authorize Lizetka editor?”</strong> consent screen (only the first time). The author approves.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num github">4</div>
+    <div class="card">
+      <div class="who github">GitHub</div>
+      <p class="act">Redirects the browser <strong>back to the editor</strong> with a temporary <code>?code=…&amp;state=…</code>.</p>
+      <p class="arrow">🔒 GitHub rule: the code is only ever sent to the <strong>pre-registered callback URL</strong> (<code>https://lizetka.cz/editor/</code>) — nowhere else.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">5</div>
+    <div class="card">
+      <div class="who browser">Browser</div>
+      <p class="act">The editor checks the returned <code>state</code> matches the one it saved (rejects the callback if not — CSRF guard), then strips <code>code</code>/<code>state</code> out of the URL bar.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">6</div>
+    <div class="card">
+      <div class="who browser">Browser</div>
+      <p class="act">The editor can't turn the code into a token itself — that step needs the secret, and GitHub blocks browser-to-token requests (no CORS). So it <strong>POSTs the <code>code</code> to the Worker</strong> instead.</p>
+      <p class="arrow">↓ <code>POST https://lizetka-auth.lizetka.workers.dev</code></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num worker">7</div>
+    <div class="card">
+      <div class="who worker">Worker</div>
+      <p class="act">Adds the <code>client_id</code> + the secret <code>client_secret</code> (which lives <strong>only here</strong>) to the code and calls GitHub's token endpoint.</p>
+      <p class="arrow">↓ <code>POST github.com/login/oauth/access_token</code></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num github">8</div>
+    <div class="card">
+      <div class="who github">GitHub</div>
+      <p class="act">Verifies the code + secret and returns the <strong>access token</strong> (scoped to <code>public_repo</code>).</p>
+      <p class="arrow">🔒 GitHub rule: it's the temporary login <code>code</code> — <strong>not</strong> the token — that's single-use and expires within minutes, so a stolen code is useless. The token itself is long-lived (see step 10).</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num worker">9</div>
+    <div class="card">
+      <div class="who worker">Worker</div>
+      <p class="act">Hands <strong>only the token</strong> back to the editor (never the secret), with CORS limited to the allowed origins. Stores nothing — its job is done.</p>
+      <p class="arrow">↑ returns <code>{ access_token, scope }</code> to the browser</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">10</div>
+    <div class="card">
+      <div class="who browser">Browser</div>
+      <p class="act">The editor saves the token in the browser (<code>localStorage</code>). The author is now logged in — and stays logged in across reloads, since these tokens don't expire.</p>
+    </div>
+  </div>
+
+  <!-- ===================== PHASE B: ACCESS GATE ===================== -->
+  <section class="phase">
+    <h2>B · The access check (who's allowed to publish)</h2>
+    <p class="sub">Login proves <em>identity</em>. Permission to publish is a separate gate — the repo's collaborator list.</p>
+  </section>
+
+  <div class="step">
+    <div class="num">11</div>
+    <div class="card">
+      <div class="who browser">Browser</div>
+      <p class="act">The editor asks GitHub <code>GET /repos/kratoon/lizetka</code> and reads <code>permissions.push</code>. If the user isn't a collaborator, they land on a friendly <strong>“no access”</strong> screen — the publish UI never appears.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num github">12</div>
+    <div class="card">
+      <div class="who github">GitHub</div>
+      <p class="act">Confirms whether this user has <strong>Write (collaborator)</strong> access to <code>kratoon/lizetka</code>. This list — managed in the repo's <em>Settings → Collaborators</em> — is the real allow-list of who can publish.</p>
+    </div>
+  </div>
+
+  <!-- ===================== PHASE C: PUBLISH ===================== -->
+  <section class="phase">
+    <h2>C · Publishing a post</h2>
+    <p class="sub">One atomic commit straight to <code>main</code> from the browser — which triggers the site to redeploy.</p>
+  </section>
+
+  <div class="step">
+    <div class="num">13</div>
+    <div class="card">
+      <div class="who browser">Browser</div>
+      <p class="act">Author writes the post and clicks <strong>Publish</strong>. The editor builds one atomic commit (post JSON + any PDFs) via GitHub's Git Data API, sending the token in every request: <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+      <p class="arrow">↓ commit to <code>main</code></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num github">14</div>
+    <div class="card">
+      <div class="who github">GitHub</div>
+      <p class="act">Accepts the commit <strong>only because the user has write access</strong> — it would reject anyone else server-side, no matter what the browser tried. The commit is attributed to the actual author. Landing on <code>main</code> triggers the CI action → the site rebuilds and deploys to <code>lizetka.cz</code>. ✅</p>
+    </div>
+  </div>
+
+  <!-- ===================== SUMMARY PANELS ===================== -->
+  <div class="panels">
+    <div class="panel github">
+      <h3>🐙 What GitHub enforces</h3>
+      <ul>
+        <li>Sends the login <code>code</code> <strong>only</strong> to the pre-registered callback URL.</li>
+        <li>Requires the <code>client_secret</code> to trade a code for a token (so a browser alone can't).</li>
+        <li>The <code>code</code> is single-use and short-lived.</li>
+        <li>The token is scoped to <code>public_repo</code> — it can only touch the user's <em>own</em> public repos.</li>
+        <li><strong>Rejects commits from non-collaborators server-side</strong> — the real, unbypassable access gate.</li>
+        <li>Attributes each commit to the actual logged-in author.</li>
+      </ul>
+    </div>
+    <div class="panel worker">
+      <h3>☁️ What the Worker does</h3>
+      <ul>
+        <li>Holds the <code>client_secret</code> — the one place it exists, never in the browser.</li>
+        <li>Performs the steps a static page can't (they need the secret): the <strong>code → token exchange</strong> at login…</li>
+        <li>…and <strong>revoking the token on logout</strong> — a kill switch that invalidates it on GitHub, killing even a leaked copy.</li>
+        <li>Returns only the token; never echoes the secret.</li>
+        <li>Limits CORS to the editor's known origins.</li>
+        <li class="no">Does NOT: store data, see passwords, or decide who's allowed to publish — that's the repo's collaborator list.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="logout-tip">
+    💡 <strong>Logging out revokes the token.</strong> Clicking “Odhlásit a odvolat přístup” in the editor tells
+    GitHub to delete the token entirely — so a leaked copy dies instantly. Logging out when you're done is the
+    recommended habit.
+  </div>
+
+  <footer class="note">
+    The Worker is the system's only backend — there for the two steps that need the server-held secret a static
+    page can't keep: exchanging the login code for a token, and revoking that token on logout. Access control is
+    entirely GitHub's repo collaborator permission.
+  </footer>
+
+</div>
+</body>
+</html>
