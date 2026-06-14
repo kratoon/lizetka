@@ -107,9 +107,10 @@
       background: #e8f0f0; border: 1px solid #bcdad9; color: var(--accent);
       border-radius: .5rem; padding: .6rem .8rem; margin: 0 0 1rem; font-size: .95rem;
     }
-    /* Destructive actions (delete): outlined red, clearly distinct from teal. */
-    button.danger { background: #fff; color: #b3261e; border: 1.5px solid #e6b4b0; }
-    button.danger:hover:not(:disabled) { background: #fbeceb; }
+    /* Destructive actions (delete): filled like the primary button (white text,
+       rounded) — just a red colour + border, to read clearly as "danger". */
+    button.danger { background: #b3261e; color: #fff; border: 1px solid #8c1d16; }
+    button.danger:hover:not(:disabled) { background: #8c1d16; }
     .danger-card { border-color: #e6b4b0; }
     /* Recent-activity feed above the post list. */
     .activity-row { font-size: .9rem; padding: .35rem 0; border-bottom: 1px solid #f0f0f0; }
