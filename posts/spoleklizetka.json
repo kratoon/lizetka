@@ -47,14 +47,6 @@
             "content": "Vladimír Hlinka - IT guy"
         },
         {
-            "type": "paragraph",
-            "content": "IČO: 10895418"
-        },
-        {
-            "type": "paragraph",
-            "content": "Spolek zapsaný pod spisovou značkou L 74966/MSPH u Městského soudu v Praze"
-        },
-        {
             "type": "h2",
             "content": "Kontakt"
         },
@@ -69,6 +61,14 @@
         {
             "type": "paragraph",
             "content": "tel: +420 724 597 986"
+        },
+        {
+            "type": "paragraph",
+            "content": "IČO: 10895418"
+        },
+        {
+            "type": "paragraph",
+            "content": "Spolek zapsaný pod spisovou značkou L 74966/MSPH u Městského soudu v Praze"
         }
     ]
 }
