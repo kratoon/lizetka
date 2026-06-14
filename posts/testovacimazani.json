@@ -1,0 +1,26 @@
+{
+    "meta": {
+        "date": "2026-06-14",
+        "title": "Testovací mazání",
+        "categories": [
+            "po táboře"
+        ],
+        "authors": [
+            "hlinkavl"
+        ]
+    },
+    "content": [
+        {
+            "type": "h2",
+            "content": "I like trains"
+        },
+        {
+            "type": "paragraph",
+            "content": "I really like trains"
+        },
+        {
+            "type": "comment",
+            "content": "more"
+        }
+    ]
+}
