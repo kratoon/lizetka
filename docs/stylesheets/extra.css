@@ -190,12 +190,15 @@
 .md-nav__link[href*="category/informace"]::before { content: "👪 "; }
 .md-nav__link[href*="category/spolkov"]::before   { content: "🤝 "; }
 
-/* Top-level sidebar entries get icons: 📰 Nejnovější (frontpage / recent),
-   📅 Archiv, 🏷️ Témata. Order-based (index = child 1, Archiv 2, Témata 3) so it
-   survives Material's __nav_ id numbering. Shown on desktop sidebar + mobile drawer. */
+/* Top-level sidebar entries get icons. Order-based: the blog plugin appends
+   Archiv + Témata after the explicit nav (index.md, Fotogalerie, Kontakt), so:
+   1 📰 Nejnovější · 2 🖼️ Fotogalerie · 3 ✉️ Kontakt · 4 📅 Archiv · 5 🏷️ Témata.
+   Shown on desktop sidebar + mobile drawer. */
 .md-nav--primary > .md-nav__list > .md-nav__item:nth-child(1) > .md-nav__link .md-ellipsis::before { content: "📰 "; }
-.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(2) > .md-nav__link .md-ellipsis::before { content: "📅 "; }
-.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(3) > .md-nav__link .md-ellipsis::before { content: "🏷️ "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(2) > .md-nav__link .md-ellipsis::before { content: "🖼️ "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(3) > .md-nav__link .md-ellipsis::before { content: "✉️ "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(4) > .md-nav__link .md-ellipsis::before { content: "📅 "; }
+.md-nav--primary > .md-nav__list > .md-nav__item:nth-child(5) > .md-nav__link .md-ellipsis::before { content: "🏷️ "; }
 
 /* ---- Desktop sidebar (>=76.25em): clean bordered panel, no site title ------ */
 @media screen and (min-width: 76.25em) {
