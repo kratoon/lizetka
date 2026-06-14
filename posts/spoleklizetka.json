@@ -60,7 +60,15 @@
         },
         {
             "type": "paragraph",
-            "content": "táborový email: lizetka90@gmail.com\n\nkontaktní osoba v případě urgence: Magda Hlinková\ntel: +420 724 597 986"
+            "content": "táborový email: lizetka90@gmail.com"
+        },
+        {
+            "type": "paragraph",
+            "content": "kontaktní osoba v případě urgence: Magda Hlinková"
+        },
+        {
+            "type": "paragraph",
+            "content": "tel: +420 724 597 986"
         }
     ]
 }
