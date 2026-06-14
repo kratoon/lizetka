@@ -56,7 +56,7 @@
         },
         {
             "type": "paragraph",
-            "content": "táborový email: lizetka90@gmail.com"
+            "content": "táborový email: <a href=\"mailto:lizetka90@gmail.com\"><strong>lizetka90@gmail.com</strong></a>"
         },
         {
             "type": "paragraph",
@@ -64,7 +64,7 @@
         },
         {
             "type": "paragraph",
-            "content": "tel: +420 724 597 986"
+            "content": "tel: <a href=\"tel:+420724597986\"><strong>+420 724 597 986</strong></a>"
         },
         {
             "type": "paragraph",
