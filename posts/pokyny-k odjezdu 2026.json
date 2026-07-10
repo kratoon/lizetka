@@ -1,0 +1,42 @@
+{
+    "meta": {
+        "date": "2026-07-10",
+        "title": "Pokyny k odjezdu 2026",
+        "categories": [
+            "informace pro rodiče"
+        ],
+        "authors": [
+            "alzhli"
+        ]
+    },
+    "content": [
+        {
+            "type": "h1",
+            "content": "Hola hola, tábor volá!"
+        },
+        {
+            "type": "h2",
+            "content": "pokyny a dokumenty k odjezdu"
+        },
+        {
+            "type": "paragraph",
+            "content": "Milí rodičové, nastává čas balení a abychom vám situaci ulehčili, přikládáme doporučený seznam, podle kterého si zvládnou sbalit i vaše děti.  Zároveň zde naleznete pokyny k odjezdu a dokumenty, které poprosíme vyplněné odevzdat u autobusu, Naše zdravotnice je budou vybírat na lavičce před nádražní budovou, v případě špatného počasí na lavičce u prvního nástupiště. "
+        },
+        {
+            "type": "file",
+            "content": "seznamveci.pdf"
+        },
+        {
+            "type": "file",
+            "content": "pokyny_k_odjezdu26.pdf"
+        },
+        {
+            "type": "file",
+            "content": "dokumenty_k_odjezdu.pdf"
+        },
+        {
+            "type": "comment",
+            "content": "more"
+        }
+    ]
+}
