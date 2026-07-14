@@ -1,0 +1,42 @@
+{
+    "meta": {
+        "date": "2026-07-14",
+        "title": "Adresa tabora",
+        "categories": [
+            "informace pro rodiče"
+        ],
+        "authors": [
+            "alzhli"
+        ]
+    },
+    "content": [
+        {
+            "type": "h1",
+            "content": "Aktuality před odjezdem"
+        },
+        {
+            "type": "h3",
+            "content": "Táborový profil na instagramu"
+        },
+        {
+            "type": "paragraph",
+            "content": "Pokud byste chtěli sledovat aktuální táborové dění, doporučujeme sledovat také instagramový profil Blatagram. Můžete se podívat na představení našich oddíláků nebo na výběry z let minulých. "
+        },
+        {
+            "type": "h3",
+            "content": "Adresa tábora"
+        },
+        {
+            "type": "paragraph",
+            "content": "Doporučujeme dětem nedávat s sebou na tábor telefony, ve stanech je často není kam uložit a máme omezené možnosti nabíjení. Zároveň prosíme neposílejte dětem balíky se sladkostmi, jídla i cukrovinek máme dostatek. Doporučujeme dětem poslat alespoň jeden dopis, obzvlášť menším táborníkům udělá velkou radost."
+        },
+        {
+            "type": "paragraph",
+            "content": "LDT Blata II. běh, Blata - lom, 507 41 p. Samšina, okr. Jičín"
+        },
+        {
+            "type": "comment",
+            "content": "more"
+        }
+    ]
+}
