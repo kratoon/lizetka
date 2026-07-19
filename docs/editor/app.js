@@ -27,6 +27,9 @@ const CATEGORIES = [
   "po táboře",
   "spolková činnost",
 ];
+// Pre-checked on a new post so a post can't be published with zero categories —
+// mkdocs' blog plugin aborts the whole deploy on an empty `categories:`.
+const DEFAULT_CATEGORY = "informace pro rodiče";
 const AUTHORS = [
   { key: "hlinkavl", name: "Vladimír Hlinka" },
   { key: "alzhli", name: "Alžběta Hlinková" },
@@ -322,7 +325,8 @@ function buildToolbar() {
 }
 
 // Build the category + author checkbox grids. With no `prefill` (new post) the
-// only thing pre-checked is the author matching the logged-in user. With a
+// pre-checked values are DEFAULT_CATEGORY and the author matching the logged-in
+// user. With a
 // `prefill` (editing) the post's own categories/authors are checked instead —
 // and any value not in the predefined lists is preserved as an extra checked box
 // so editing never silently drops a category or author.
@@ -332,7 +336,8 @@ function buildMetaForm(prefill = null) {
   const knownCats = new Set(CATEGORIES);
   CATEGORIES.forEach((c) => {
     const box = checkbox("cat_" + slugify(c), c, c);
-    if (prefill && prefill.categories?.includes(c)) box.querySelector("input").checked = true;
+    const checked = prefill ? prefill.categories?.includes(c) : c === DEFAULT_CATEGORY;
+    if (checked) box.querySelector("input").checked = true;
     cats.append(box);
   });
   (prefill?.categories || [])
