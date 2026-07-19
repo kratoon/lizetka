@@ -1,8 +1,10 @@
 function meta(meta) {
     return `---
-${Object.entries(meta).map(([key, value]) => {
-        return `${key}: ${typeof value === 'string' ? value : `\n${value.map(it => `  - ${it}`).join('\n')}`}`
-    }).join('\n')}
+${Object.entries(meta)
+        .filter(([, value]) => typeof value === 'string' || value.length > 0)
+        .map(([key, value]) => {
+            return `${key}: ${typeof value === 'string' ? value : `\n${value.map(it => `  - ${it}`).join('\n')}`}`
+        }).join('\n')}
 ---`;
 }
 
