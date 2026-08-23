@@ -1,6 +1,7 @@
 site_name: Lizetka
 site_description: Lizetka - tábory a jiné aktivity
 site_author: Ondrej Kratochvil
+site_url: https://lizetka.cz/
 
 # Theme configuration
 theme:

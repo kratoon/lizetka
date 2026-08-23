@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+<!--
+  Náhled odkazu (Messenger, Facebook, WhatsApp, Twitter/X...).
+  Bez těchto tagů si sociální sítě vytáhnou první obrázek na stránce,
+  což je avatar autora příspěvku. Proto je náhledovka nastavená natvrdo.
+
+  Chceš jinou fotku? Stačí přepsat docs/public/nahled.jpg (ideálně 1200x630 px)
+  a po nasazení protočit cache v https://developers.facebook.com/tools/debug/
+-->
+{% block extrahead %}
+  {% set page_title = page.title ~ " – " ~ config.site_name if page and page.title and not page.is_homepage else config.site_name %}
+  {% set page_desc = page.meta.description if page and page.meta and page.meta.description else config.site_description %}
+  {% set preview_image = config.site_url ~ "public/nahled.jpg" %}
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="{{ config.site_name }}" />
+  <meta property="og:locale" content="cs_CZ" />
+  <meta property="og:title" content="{{ page_title }}" />
+  <meta property="og:description" content="{{ page_desc }}" />
+  <meta property="og:url" content="{{ page.canonical_url if page else config.site_url }}" />
+  <meta property="og:image" content="{{ preview_image }}" />
+  <meta property="og:image:secure_url" content="{{ preview_image }}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Táborák na táboře Lizetka" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ page_title }}" />
+  <meta name="twitter:description" content="{{ page_desc }}" />
+  <meta name="twitter:image" content="{{ preview_image }}" />
+{% endblock %}
